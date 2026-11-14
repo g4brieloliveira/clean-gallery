@@ -1,0 +1,331 @@
+import styled from 'styled-components/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export const Screen = styled(SafeAreaView)`
+  flex: 1;
+  background-color: ${({ theme }) => theme.colors.backgroundPure};
+`;
+
+export const Content = styled.View`
+  flex: 1;
+  width: 100%;
+  max-width: 520px;
+  align-self: center;
+`;
+
+export const HeaderRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
+  padding-top: ${({ theme }) => theme.spacing.sm}px;
+  padding-bottom: ${({ theme }) => theme.spacing.md}px;
+`;
+
+export const BackSpacer = styled.View`
+  width: 40px;
+`;
+
+export const HeaderTextBlock = styled.View`
+  flex: 1;
+`;
+
+export const Title = styled.Text`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.title + 6}px;
+  font-weight: 800;
+`;
+
+export const Subtitle = styled.Text`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.subtitle}px;
+  margin-top: ${({ theme }) => theme.spacing.xs}px;
+`;
+
+export const SummaryCard = styled.View`
+  margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
+  margin-bottom: ${({ theme }) => theme.spacing.md}px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  padding-vertical: ${({ theme }) => theme.spacing.sm}px;
+  padding-horizontal: ${({ theme }) => theme.spacing.md}px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.06);
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const SummaryText = styled.Text`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.caption}px;
+`;
+
+export const SearchWrap = styled.View`
+  margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
+  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+  height: 52px;
+  border-radius: 26px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.08);
+  padding-horizontal: ${({ theme }) => theme.spacing.md}px;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const SearchInput = styled.TextInput`
+  flex: 1;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.body}px;
+  margin-left: ${({ theme }) => theme.spacing.sm}px;
+`;
+
+export const IconButton = styled.Pressable`
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.colors.surfaceElevated};
+`;
+
+export const Toolbar = styled.View`
+  margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
+  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const ChipsScroll = styled.ScrollView`
+  flex-grow: 0;
+  max-width: 63%;
+`;
+
+export const ChipsRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const Chip = styled.Pressable<{ $active: boolean }>`
+  padding-vertical: ${({ theme }) => theme.spacing.sm}px;
+  padding-horizontal: ${({ theme }) => theme.spacing.md}px;
+  border-radius: 999px;
+  background-color: ${({ theme, $active }) =>
+    $active ? theme.colors.accentGreenHighlight : theme.colors.surface};
+  border-width: 1px;
+  border-color: ${({ theme, $active }) =>
+    $active ? theme.colors.accentGreenHighlight : 'rgba(255,255,255,0.09)'};
+  margin-right: ${({ theme }) => theme.spacing.sm}px;
+`;
+
+export const ChipText = styled.Text<{ $active: boolean }>`
+  color: ${({ theme, $active }) => ($active ? '#000000' : theme.colors.textSecondary)};
+  font-weight: 700;
+  font-size: ${({ theme }) => theme.typography.caption}px;
+`;
+
+export const ToolbarRight = styled.View`
+  margin-left: auto;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const Segmented = styled.View`
+  margin-left: ${({ theme }) => theme.spacing.sm}px;
+  flex-direction: row;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: 20px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+`;
+
+export const SegmentButton = styled.Pressable<{ $active: boolean }>`
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme, $active }) => ($active ? theme.colors.surfaceElevated : 'transparent')};
+`;
+
+export const SortMenu = styled.View`
+  position: absolute;
+  top: 46px;
+  right: 52px;
+  min-width: 170px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.1);
+  padding-vertical: ${({ theme }) => theme.spacing.xs}px;
+  z-index: 8;
+`;
+
+export const SortBackdrop = styled.Pressable`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 7;
+`;
+
+export const SortOption = styled.Pressable<{ $active: boolean }>`
+  padding-vertical: ${({ theme }) => theme.spacing.sm}px;
+  padding-horizontal: ${({ theme }) => theme.spacing.md}px;
+  background-color: ${({ theme, $active }) =>
+    $active ? 'rgba(80, 220, 100, 0.14)' : 'transparent'};
+`;
+
+export const SortOptionText = styled.Text<{ $active: boolean }>`
+  color: ${({ theme, $active }) => ($active ? theme.colors.accentGreenHighlight : theme.colors.textPrimary)};
+  font-weight: ${({ $active }) => ($active ? 700 : 500)};
+  font-size: ${({ theme }) => theme.typography.caption}px;
+`;
+
+export const ListPad = styled.View`
+  flex: 1;
+  padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
+`;
+
+export const Centered = styled.View`
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xl}px;
+`;
+
+export const Muted = styled.Text`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  text-align: center;
+  font-size: ${({ theme }) => theme.typography.subtitle}px;
+`;
+
+export const PrimaryButton = styled.Pressable`
+  margin-top: ${({ theme }) => theme.spacing.lg}px;
+  background-color: ${({ theme }) => theme.colors.accentGreenHighlight};
+  padding-vertical: ${({ theme }) => theme.spacing.md}px;
+  padding-horizontal: ${({ theme }) => theme.spacing.xxl}px;
+  border-radius: ${({ theme }) => theme.radii.sm}px;
+`;
+
+export const PrimaryLabel = styled.Text`
+  color: #000000;
+  font-weight: 700;
+  font-size: ${({ theme }) => theme.typography.body}px;
+`;
+
+export const LoadingOverlay = styled.View`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  align-items: center;
+  justify-content: center;
+`;
+
+export const LoadingCaption = styled(Muted)`
+  margin-top: ${({ theme }) => theme.spacing.md}px;
+`;
+
+export const CheckingCaption = styled(Muted)`
+  margin-top: ${({ theme }) => theme.spacing.md}px;
+`;
+
+export const ErrorRowInset = styled.View`
+  padding-vertical: ${({ theme }) => theme.spacing.sm}px;
+  align-items: center;
+`;
+
+export const EmptyListCard = styled.View`
+  margin-top: ${({ theme }) => theme.spacing.lg}px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  padding: ${({ theme }) => theme.spacing.lg}px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.06);
+`;
+
+export const RandomCard = styled.Pressable`
+  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+  border-radius: ${({ theme }) => theme.radii.lg}px;
+  border-width: 1px;
+  border-color: rgba(80, 220, 100, 0.38);
+  background-color: rgba(55, 160, 70, 0.16);
+  min-height: 84px;
+  padding: ${({ theme }) => theme.spacing.md}px;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const RandomIconBox = styled.View`
+  width: 52px;
+  height: 52px;
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.colors.accentGreenHighlight};
+  margin-right: ${({ theme }) => theme.spacing.md}px;
+`;
+
+export const RandomTextWrap = styled.View`
+  flex: 1;
+`;
+
+export const RandomTitle = styled.Text`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.body + 1}px;
+  font-weight: 800;
+`;
+
+export const RandomSubtitle = styled.Text`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.caption}px;
+  margin-top: ${({ theme }) => theme.spacing.xs}px;
+`;
+
+export const GridRowWrap = styled.View`
+  width: 50%;
+  padding-horizontal: 4px;
+`;
+
+export const GridCard = styled.Pressable`
+  flex: 1;
+  margin: 4px;
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+`;
+
+export const GridThumb = styled.Image<{ $height: number }>`
+  width: 100%;
+  height: ${({ $height }) => $height}px;
+`;
+
+export const GridThumbFallback = styled.View<{ $height: number }>`
+  width: 100%;
+  height: ${({ $height }) => $height}px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.colors.surfaceElevated};
+`;
+
+export const GridMeta = styled.View`
+  padding: ${({ theme }) => theme.spacing.sm}px;
+`;
+
+export const GridTitle = styled.Text`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.typography.caption + 1}px;
+  font-weight: 700;
+`;
+
+export const GridSubtitle = styled.Text`
+  margin-top: ${({ theme }) => theme.spacing.xs}px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.caption - 1}px;
+`;
