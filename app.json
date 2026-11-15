@@ -30,6 +30,11 @@
         "READ_MEDIA_IMAGES",
         "READ_MEDIA_VIDEO"
       ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -47,6 +52,12 @@
       ],
       "expo-font",
       "expo-video"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "85d9c103-3742-4f08-ab76-e894dda28196"
+      }
+    },
+    "owner": "g4brieloliveira"
   }
 }

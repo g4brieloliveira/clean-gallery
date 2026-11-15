@@ -17,6 +17,17 @@ npm start
 
 Use o app em um **dispositivo físico** ou emulador com acesso à biblioteca de fotos (Expo Go ou build nativo).
 
+### Builds EAS
+
+```bash
+npx eas-cli build --profile development --platform ios
+npx eas-cli build --profile preview --platform ios
+npx eas-cli build --profile production --platform ios
+```
+
+Os três perfis estão em `eas.json`. O build assinado para aparelho físico depende do acesso Apple
+e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
+
 ### Scripts
 
 | Comando | Função |
