@@ -37,14 +37,15 @@ Data: **2026-11-15** · Aprovador pendente: **Gabriel Oliveira**
 
 | Evidência | OK? | Nota |
 |---|---|---|
-| P0 CG-26…CG-33 fechados | [ ] | |
-| Suite automatizada CG-37…CG-44 verde | [ ] | |
-| Revisão manual das invariantes de exclusão | [ ] | |
+| P0 CG-26…CG-33 fechados | [x] | Session token, source states, delete reconcile, hydration gate, honest copy. |
+| Suite automatizada CG-37…CG-44 verde | [x] | `npm test` 14/14 em 2026-11-15; typecheck verde. |
+| Revisão manual das invariantes de exclusão | [ ] | Pendente em iPhone real (cruzar com Semana 2 / CG-46). |
 
 - **GO:** testes P0 passam + invariantes confirmadas.
 - **NO-GO:** inconsistência seleção/confirmação/histórico/fila/biblioteca.
 
-Decisão: _____________ Data: _____________ Aprovador: _____________
+Decisão: **NO-GO parcial** — código e testes P0 prontos; falta revisão manual em device.  
+Data: **2026-11-15** · Aprovador: **Gabriel Oliveira**
 
 ---
 

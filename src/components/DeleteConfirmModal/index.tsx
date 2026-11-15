@@ -25,10 +25,10 @@ export function DeleteConfirmModal(props: DeleteConfirmModalProps): React.JSX.El
         <Panel>
           <Title>Mover para Apagados Recentemente?</Title>
           <Body>
-            {pendingDeleteCount} mídia{pendingDeleteCount === 1 ? '' : 's'} será
-            {pendingDeleteCount === 1 ? '' : 'ão'} removida
-            {pendingDeleteCount === 1 ? '' : 's'} da galeria. O Kleen não poderá restaurá-la
-            {pendingDeleteCount === 1 ? '' : 's'}, e o espaço pode não ser liberado imediatamente.
+            {pendingDeleteCount} mídia{pendingDeleteCount === 1 ? '' : 's'} irá
+            {pendingDeleteCount === 1 ? '' : 'ão'} para “Apagados Recentemente” no iOS. O Kleen não
+            consegue restaurá-la{pendingDeleteCount === 1 ? '' : 's'} depois, e o espaço pode não ser
+            liberado imediatamente.
           </Body>
           <Row>
             <GhostButton onPress={onCancel} disabled={loading}>

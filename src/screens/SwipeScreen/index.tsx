@@ -10,6 +10,7 @@ import {
   ensureMediaLibraryPermission,
   prefetchDisplayableUris,
 } from '../../services/mediaLibraryService';
+import { logLocalError } from '../../services/localErrorLog';
 import {
   selectCurrentAsset,
   selectRemainingCount,
@@ -32,6 +33,7 @@ import {
   HeaderActions,
   NeutralCta,
   NeutralCtaLabel,
+  PartialLimitBanner,
   PendingStrip,
   PendingStripLabel,
   Screen,
@@ -48,15 +50,19 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   const currentIndex = useGalleryStore((s) => s.currentIndex);
   const sessionDeleteCount = useGalleryStore((s) => s.sessionDeleteCount);
   const sessionKeepCount = useGalleryStore((s) => s.sessionKeepCount);
+  const sessionFailedCount = useGalleryStore((s) => s.sessionFailedCount);
+  const sessionRemovedCount = useGalleryStore((s) => s.sessionRemovedCount);
   const toDeleteIds = useGalleryStore((s) => s.toDeleteIds);
   const history = useGalleryStore((s) => s.history);
+  const sourceLoadState = useGalleryStore((s) => s.sourceLoadState);
 
   const applySwipe = useGalleryStore((s) => s.applySwipe);
   const skipCurrentAsUnrenderable = useGalleryStore((s) => s.skipCurrentAsUnrenderable);
   const markAlbumValidated = useGalleryStore((s) => s.markAlbumValidated);
+  const canMarkAlbumValidated = useGalleryStore((s) => s.canMarkAlbumValidated);
   const undoLast = useGalleryStore((s) => s.undoLast);
   const deferCurrentToEnd = useGalleryStore((s) => s.deferCurrentToEnd);
-  const removeDeletedFromQueue = useGalleryStore((s) => s.removeDeletedFromQueue);
+  const applyConfirmedDeletes = useGalleryStore((s) => s.applyConfirmedDeletes);
 
   const currentAsset = useGalleryStore(selectCurrentAsset);
   const remaining = useGalleryStore(selectRemainingCount);
@@ -80,6 +86,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     !!currentAsset &&
     queue.length >= 2 &&
     currentIndex < queue.length - 1;
+  const showPartialLimit = sourceLoadState === 'partialByLimit';
 
   useEffect(() => {
     if (sessionFinished && toDeleteIds.length > 0) {
@@ -90,8 +97,9 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   useEffect(() => {
     if (!sessionFinished) return;
     if (album.mode !== 'album') return;
+    if (!canMarkAlbumValidated()) return;
     markAlbumValidated(album.id);
-  }, [album.id, album.mode, markAlbumValidated, sessionFinished]);
+  }, [album.id, album.mode, canMarkAlbumValidated, markAlbumValidated, sessionFinished, sourceLoadState]);
 
   useEffect(() => {
     if (queue.length === 0) return;
@@ -132,23 +140,47 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     try {
       const perm = await ensureMediaLibraryPermission();
       if (!perm.granted) {
-        setDeleteError('Permissão necessária para apagar mídias.');
+        setDeleteError('Permissão necessária para remover mídias.');
         setDeleteLoading(false);
         return;
       }
       const ids = [...toDeleteIds];
-      await deleteAssetsFromLibrary(ids);
-      removeDeletedFromQueue(ids);
+      const result = await deleteAssetsFromLibrary(ids);
+      if (result.deletedIds.length > 0) {
+        applyConfirmedDeletes(result.deletedIds);
+      }
+      if (result.cancelled) {
+        setDeleteError('Remoção cancelada. Nada foi removido da galeria.');
+        setModalOpen(false);
+        return;
+      }
+      if (result.remainingIds.length > 0) {
+        setDeleteError(
+          result.deletedIds.length > 0
+            ? `${result.deletedIds.length} removida(s); ${result.remainingIds.length} ainda pendente(s).`
+            : 'Não foi possível remover as mídias selecionadas.',
+        );
+        void logLocalError('delete.partial', 'Partial or failed delete', {
+          deleted: result.deletedIds.length,
+          remaining: result.remainingIds.length,
+        });
+        if (result.deletedIds.length === 0) {
+          setDeleteLoading(false);
+          return;
+        }
+      }
       setModalOpen(false);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Falha ao apagar.';
+      const msg = e instanceof Error ? e.message : 'Falha ao remover.';
       setDeleteError(msg);
+      void logLocalError('delete.failed', msg, { pending: toDeleteIds.length });
     } finally {
       setDeleteLoading(false);
     }
-  }, [removeDeletedFromQueue, toDeleteIds]);
+  }, [applyConfirmedDeletes, toDeleteIds]);
 
   const emptyQueueOnArrival = queue.length === 0;
+  const reviewedCount = sessionDeleteCount + sessionKeepCount;
 
   return (
     <Screen edges={['top', 'left', 'right']}>
@@ -192,6 +224,13 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         </HeaderActions>
       </TopRow>
 
+      {showPartialLimit ? (
+        <PartialLimitBanner accessibilityRole="text">
+          Esta sessão cobre só parte do álbum por um limite técnico. O álbum não será marcado como
+          totalmente revisado.
+        </PartialLimitBanner>
+      ) : null}
+
       {emptyQueueOnArrival ? (
         <CardArea>
           <EmptyTitle>Nada para limpar aqui</EmptyTitle>
@@ -223,10 +262,17 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         <CardArea>
           <EmptyTitle>Tudo pronto</EmptyTitle>
           <EmptyBody>
-            {sessionDeleteCount + sessionKeepCount} revisada
-            {sessionDeleteCount + sessionKeepCount === 1 ? '' : 's'} · {sessionKeepCount} mantida
-            {sessionKeepCount === 1 ? '' : 's'} · {toDeleteIds.length} pronta
-            {toDeleteIds.length === 1 ? '' : 's'} para remover.
+            {reviewedCount} revisada{reviewedCount === 1 ? '' : 's'} · {sessionKeepCount} mantida
+            {sessionKeepCount === 1 ? '' : 's'}
+            {sessionRemovedCount > 0
+              ? ` · ${sessionRemovedCount} enviada${sessionRemovedCount === 1 ? '' : 's'} para Apagados Recentemente`
+              : toDeleteIds.length > 0
+                ? ` · ${toDeleteIds.length} pronta${toDeleteIds.length === 1 ? '' : 's'} para remover`
+                : ''}
+            {sessionFailedCount > 0
+              ? ` · ${sessionFailedCount} falha${sessionFailedCount === 1 ? '' : 's'} de leitura`
+              : ''}
+            .
           </EmptyBody>
           {toDeleteIds.length > 0 ? (
             <DangerCta onPress={() => setModalOpen(true)}>

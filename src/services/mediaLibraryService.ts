@@ -4,6 +4,7 @@ import type {
   AlbumOptionId,
   AlbumSelectionMode,
   GalleryAsset,
+  SourceLoadState,
 } from '../types/domain';
 import { useMediaReadinessStore } from '../store/mediaReadinessStore';
 import { shuffleInPlace } from '../utils/random';
@@ -15,9 +16,12 @@ const RANDOM_PAGE_SIZE = 500;
 /** Initial random payload to render quickly before background paging. */
 const RANDOM_INITIAL_FIRST = 600;
 /** Safety cap for progressive random loading in this session. */
-const RANDOM_MAX_ASSETS = 25_000;
+export const RANDOM_MAX_ASSETS = 25_000;
 const APPROVED_MAX_ASSETS = 6_000;
-const ALBUM_BACKGROUND_MAX_ASSETS = 8000;
+export const ALBUM_BACKGROUND_MAX_ASSETS = 8000;
+
+export type AppendBatchFn = (batch: readonly GalleryAsset[], sessionId: number) => void;
+export type SourceLoadStateFn = (state: SourceLoadState, sessionId: number) => void;
 const COVER_FETCH_CONCURRENCY = 6;
 
 /** Photos and videos shown in the swipe flow (excludes audio-only). */
@@ -70,7 +74,20 @@ export interface EnsurePermissionResult {
 
 export interface LoadSwipeSessionAssetsResult {
   readonly assets: GalleryAsset[];
-  readonly continueAlbumInBackground: (() => void) | null;
+  /**
+   * Start background paging for this session. Pass the `sessionId` from `beginSession`.
+   * No-op callbacks when the first page already exhausted the source.
+   */
+  readonly continueAlbumInBackground: ((sessionId: number) => void) | null;
+  /** Initial source state before background paging (if any) runs. */
+  readonly initialSourceLoadState: SourceLoadState;
+}
+
+export interface DeleteAssetsResult {
+  readonly deletedIds: string[];
+  readonly remainingIds: string[];
+  /** True when nothing was deleted (typical user cancel of the system sheet). */
+  readonly cancelled: boolean;
 }
 
 function toGalleryAsset(asset: MediaLibrary.Asset): GalleryAsset {
@@ -342,29 +359,45 @@ async function loadRandomInitialBatch(): Promise<RandomInitialPageResult> {
 function startPagingRestOfRandomGallery(
   afterCursor: string,
   alreadyLoaded: number,
-  appendToQueue: (batch: readonly GalleryAsset[]) => void,
+  sessionId: number,
+  appendToQueue: AppendBatchFn,
+  setSourceLoadState: SourceLoadStateFn,
+  maxAssets: number = RANDOM_MAX_ASSETS,
 ): void {
   void (async () => {
     let after: string | undefined = afterCursor;
     let loaded = alreadyLoaded;
-    for (;;) {
-      const page = await MediaLibrary.getAssetsAsync({
-        first: RANDOM_PAGE_SIZE,
-        after,
-        mediaType: GALLERY_MEDIA_TYPES,
-        sortBy: MediaLibrary.SortBy.creationTime,
-      });
-      const batch = page.assets.map(toGalleryAsset);
-      if (batch.length > 0) {
-        shuffleInPlace(batch);
-        appendToQueue(batch);
-        loaded += batch.length;
-      }
+    try {
+      for (;;) {
+        const page = await MediaLibrary.getAssetsAsync({
+          first: RANDOM_PAGE_SIZE,
+          after,
+          mediaType: GALLERY_MEDIA_TYPES,
+          sortBy: MediaLibrary.SortBy.creationTime,
+        });
+        const batch = page.assets.map(toGalleryAsset);
+        if (batch.length > 0) {
+          shuffleInPlace(batch);
+          appendToQueue(batch, sessionId);
+          loaded += batch.length;
+        }
 
-      if (!page.hasNextPage) break;
-      if (loaded >= RANDOM_MAX_ASSETS) break;
-      after = page.endCursor;
-      if (!after) break;
+        if (!page.hasNextPage) {
+          setSourceLoadState('paginationComplete', sessionId);
+          return;
+        }
+        if (loaded >= maxAssets) {
+          setSourceLoadState('partialByLimit', sessionId);
+          return;
+        }
+        after = page.endCursor;
+        if (!after) {
+          setSourceLoadState('paginationComplete', sessionId);
+          return;
+        }
+      }
+    } catch {
+      setSourceLoadState('failed', sessionId);
     }
   })();
 }
@@ -372,30 +405,47 @@ function startPagingRestOfRandomGallery(
 function startPagingRestOfAlbum(
   albumId: string,
   afterCursor: string,
-  appendToQueue: (batch: readonly GalleryAsset[]) => void,
+  sessionId: number,
+  appendToQueue: AppendBatchFn,
+  setSourceLoadState: SourceLoadStateFn,
+  maxAssets: number = ALBUM_BACKGROUND_MAX_ASSETS,
 ): void {
   void (async () => {
     let after: string | undefined = afterCursor;
     let loaded = 0;
 
-    for (;;) {
-      const page = await MediaLibrary.getAssetsAsync({
-        album: albumId,
-        first: ALBUM_PAGE_SIZE,
-        after,
-        mediaType: GALLERY_MEDIA_TYPES,
-        sortBy: MediaLibrary.SortBy.creationTime,
-      });
+    try {
+      for (;;) {
+        const page = await MediaLibrary.getAssetsAsync({
+          album: albumId,
+          first: ALBUM_PAGE_SIZE,
+          after,
+          mediaType: GALLERY_MEDIA_TYPES,
+          sortBy: MediaLibrary.SortBy.creationTime,
+        });
 
-      const batch = page.assets.map(toGalleryAsset);
-      if (batch.length > 0) {
-        appendToQueue(batch);
-        loaded += batch.length;
+        const batch = page.assets.map(toGalleryAsset);
+        if (batch.length > 0) {
+          appendToQueue(batch, sessionId);
+          loaded += batch.length;
+        }
+
+        if (!page.hasNextPage) {
+          setSourceLoadState('paginationComplete', sessionId);
+          return;
+        }
+        if (loaded >= maxAssets) {
+          setSourceLoadState('partialByLimit', sessionId);
+          return;
+        }
+        after = page.endCursor;
+        if (!after) {
+          setSourceLoadState('paginationComplete', sessionId);
+          return;
+        }
       }
-
-      if (!page.hasNextPage) break;
-      if (loaded >= ALBUM_BACKGROUND_MAX_ASSETS) break;
-      after = page.endCursor;
+    } catch {
+      setSourceLoadState('failed', sessionId);
     }
   })();
 }
@@ -446,7 +496,9 @@ export async function loadAssetsByIds(assetIds: readonly string[]): Promise<Gall
 
 export async function loadSwipeSessionAssets(
   input: LoadAssetsForAlbumSelectionInput,
-  appendToQueue: (batch: readonly GalleryAsset[]) => void,
+  appendToQueue: AppendBatchFn,
+  setSourceLoadState: SourceLoadStateFn,
+  options?: { readonly albumBackgroundMax?: number; readonly randomMax?: number },
 ): Promise<LoadSwipeSessionAssetsResult> {
   if (input.mode === 'kept' || input.mode === 'pendingDelete') {
     const ids =
@@ -455,20 +507,40 @@ export async function loadSwipeSessionAssets(
         : (input.pendingDeleteAssetIds ?? []);
     const assets = await loadAssetsByIds(ids);
     assets.sort((a, b) => b.creationTime - a.creationTime);
-    return { assets, continueAlbumInBackground: null };
+    return {
+      assets,
+      continueAlbumInBackground: null,
+      initialSourceLoadState: 'paginationComplete',
+    };
   }
 
   if (input.mode === 'random') {
     const first = await loadRandomInitialBatch();
     const continueAlbumInBackground =
       first.hasNextPage && first.endCursor
-        ? () => startPagingRestOfRandomGallery(first.endCursor!, first.initial.length, appendToQueue)
+        ? (sessionId: number) =>
+            startPagingRestOfRandomGallery(
+              first.endCursor!,
+              first.initial.length,
+              sessionId,
+              appendToQueue,
+              setSourceLoadState,
+              options?.randomMax ?? RANDOM_MAX_ASSETS,
+            )
         : null;
-    return { assets: first.initial, continueAlbumInBackground };
+    return {
+      assets: first.initial,
+      continueAlbumInBackground,
+      initialSourceLoadState: continueAlbumInBackground ? 'loading' : 'paginationComplete',
+    };
   }
 
   if (!input.libraryAlbumId) {
-    return { assets: [], continueAlbumInBackground: null };
+    return {
+      assets: [],
+      continueAlbumInBackground: null,
+      initialSourceLoadState: 'paginationComplete',
+    };
   }
 
   const first = await MediaLibrary.getAssetsAsync({
@@ -482,10 +554,22 @@ export async function loadSwipeSessionAssets(
 
   const continueAlbumInBackground =
     first.hasNextPage && first.endCursor
-      ? () => startPagingRestOfAlbum(input.libraryAlbumId!, first.endCursor, appendToQueue)
+      ? (sessionId: number) =>
+          startPagingRestOfAlbum(
+            input.libraryAlbumId!,
+            first.endCursor,
+            sessionId,
+            appendToQueue,
+            setSourceLoadState,
+            options?.albumBackgroundMax ?? ALBUM_BACKGROUND_MAX_ASSETS,
+          )
       : null;
 
-  return { assets, continueAlbumInBackground };
+  return {
+    assets,
+    continueAlbumInBackground,
+    initialSourceLoadState: continueAlbumInBackground ? 'loading' : 'paginationComplete',
+  };
 }
 
 export function assetUriRequiresNativeResolution(uri: string): boolean {
@@ -557,7 +641,70 @@ export async function resolveDisplayableAssetUri(
   }
 }
 
-export async function deleteAssetsFromLibrary(assetIds: readonly string[]): Promise<void> {
-  if (assetIds.length === 0) return;
-  await MediaLibrary.deleteAssetsAsync([...assetIds]);
+/**
+ * Returns which of `assetIds` still resolve in the library.
+ * Used after delete (and during reconcile) so state mirrors reality when the
+ * system sheet cancels or only deletes a subset.
+ */
+export async function filterExistingAssetIds(
+  assetIds: readonly string[],
+): Promise<string[]> {
+  if (assetIds.length === 0) return [];
+  const existing: string[] = [];
+  const concurrency = 8;
+  for (let i = 0; i < assetIds.length; i += concurrency) {
+    const batch = assetIds.slice(i, i + concurrency);
+    const settled = await Promise.allSettled(
+      batch.map(async (id) => {
+        try {
+          const info = await MediaLibrary.getAssetInfoAsync(id, {
+            shouldDownloadFromNetwork: false,
+          });
+          return info?.id ? id : null;
+        } catch {
+          return null;
+        }
+      }),
+    );
+    for (const result of settled) {
+      if (result.status === 'fulfilled' && result.value) {
+        existing.push(result.value);
+      }
+    }
+  }
+  return existing;
+}
+
+/**
+ * Deletes assets via the native sheet, then reconciles which IDs actually left.
+ * Cancel / partial failure never assumes a total success.
+ */
+export async function deleteAssetsFromLibrary(
+  assetIds: readonly string[],
+): Promise<DeleteAssetsResult> {
+  if (assetIds.length === 0) {
+    return { deletedIds: [], remainingIds: [], cancelled: false };
+  }
+
+  try {
+    await MediaLibrary.deleteAssetsAsync([...assetIds]);
+  } catch {
+    const remainingIds = await filterExistingAssetIds(assetIds);
+    const remainingSet = new Set(remainingIds);
+    const deletedIds = assetIds.filter((id) => !remainingSet.has(id));
+    return {
+      deletedIds,
+      remainingIds,
+      cancelled: deletedIds.length === 0,
+    };
+  }
+
+  const remainingIds = await filterExistingAssetIds(assetIds);
+  const remainingSet = new Set(remainingIds);
+  const deletedIds = assetIds.filter((id) => !remainingSet.has(id));
+  return {
+    deletedIds,
+    remainingIds,
+    cancelled: deletedIds.length === 0 && remainingIds.length === assetIds.length,
+  };
 }

@@ -158,3 +158,11 @@ export const ErrorBanner = styled.Text`
   padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
   padding-bottom: ${({ theme }) => theme.spacing.md}px;
 `;
+
+export const PartialLimitBanner = styled.Text`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.caption}px;
+  text-align: center;
+  padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
+  padding-bottom: ${({ theme }) => theme.spacing.sm}px;
+`;
