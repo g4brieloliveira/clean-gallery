@@ -12,6 +12,18 @@ Definidas em `app.json` → `expo.ios.infoPlist` e pelo plugin `expo-media-libra
 
 O app processa a fototeca **localmente**. Não há upload da galeria.
 
+## Acesso limitado (iOS)
+
+`MediaLibrary.getPermissionsAsync()` / `requestPermissionsAsync()` expõem `accessPrivileges`:
+
+| Valor | UX no Kleen |
+|---|---|
+| `all` | Fluxo normal |
+| `limited` | Lista carrega com o subconjunto permitido + banner “Acesso limitado” com CTA **Abrir Ajustes** |
+| `none` / não concedido | Tela bloqueante com CTA **Abrir Ajustes** |
+
+Ao voltar do background, o app reconsulta a permissão (`AppState`) sem reabrir o diálogo nativo em loop.
+
 ## Android
 
 Lista explícita em `app.json` → `expo.android.permissions` (mínimo atual):

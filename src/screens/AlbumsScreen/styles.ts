@@ -53,6 +53,28 @@ export const SummaryText = styled.Text`
   font-size: ${({ theme }) => theme.typography.caption}px;
 `;
 
+export const LimitedAccessBanner = styled.Pressable`
+  margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
+  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+  padding: ${({ theme }) => theme.spacing.md}px;
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  background-color: ${({ theme }) => theme.colors.brandTint};
+  border-width: 1px;
+  border-color: ${({ theme }) => theme.colors.brandPrimary};
+`;
+
+export const LimitedAccessTitle = styled.Text`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-weight: 700;
+  font-size: ${({ theme }) => theme.typography.caption + 1}px;
+`;
+
+export const LimitedAccessBody = styled.Text`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.typography.caption}px;
+  margin-top: ${({ theme }) => theme.spacing.xs}px;
+`;
+
 export const SearchWrap = styled.View`
   margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
   margin-bottom: ${({ theme }) => theme.spacing.sm}px;

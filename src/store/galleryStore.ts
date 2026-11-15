@@ -24,6 +24,8 @@ interface GalleryState {
   validatedAlbumIds: string[];
   /** Persisted: user selections awaiting final removal confirmation. */
   toDeleteIds: string[];
+  /** Persisted: first-run onboarding completed. */
+  hasSeenOnboarding: boolean;
 
   /** Current swipe session (not persisted). */
   sessionSelection: SessionSelection | null;
@@ -65,6 +67,7 @@ interface GalleryState {
   deferCurrentToEnd: () => void;
   undoLast: () => void;
   clearPendingDeletes: () => void;
+  completeOnboarding: () => void;
   /**
    * Apply a confirmed library deletion.
    * Clears undo history (policy A) so undo never references removed media.
@@ -99,6 +102,7 @@ export const useGalleryStore = create<GalleryState>()(
       sessionFailedCount: 0,
       sessionRemovedCount: 0,
       toDeleteIds: [],
+      hasSeenOnboarding: false,
       history: [],
       hasHydrated: false,
 
@@ -271,6 +275,8 @@ export const useGalleryStore = create<GalleryState>()(
 
       clearPendingDeletes: () => set({ toDeleteIds: [] }),
 
+      completeOnboarding: () => set({ hasSeenOnboarding: true }),
+
       applyConfirmedDeletes: (deletedIds) => {
         if (deletedIds.length === 0) return;
         const idSet = new Set(deletedIds);
@@ -312,6 +318,7 @@ export const useGalleryStore = create<GalleryState>()(
         keptAssetIds: state.keptAssetIds,
         validatedAlbumIds: state.validatedAlbumIds,
         toDeleteIds: state.toDeleteIds,
+        hasSeenOnboarding: state.hasSeenOnboarding,
       }),
       onRehydrateStorage: () => (_state, error) => {
         // Always unblock UI: failed storage still yields defaults + hydrated.

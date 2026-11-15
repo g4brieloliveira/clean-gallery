@@ -1,4 +1,9 @@
-export type AlbumsPermissionPhase = 'checking' | 'denied' | 'ready' | 'error';
+export type AlbumsPermissionPhase =
+  | 'checking'
+  | 'denied'
+  | 'limited'
+  | 'ready'
+  | 'error';
 
 export interface AlbumsScreenViewState {
   readonly permissionPhase: AlbumsPermissionPhase;
