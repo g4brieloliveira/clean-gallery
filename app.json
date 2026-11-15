@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "clean-gallery",
-    "slug": "clean-gallery",
+    "name": "Kleen",
+    "slug": "kleen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,19 +10,21 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#121212"
+      "backgroundColor": "#0D0D12"
     },
     "ios": {
+      "bundleIdentifier": "com.g4brieloliveira.kleen",
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "O app precisa acessar suas fotos e vídeos para você revisar e limpar a galeria.",
-        "NSPhotoLibraryAddUsageDescription": "O app pode precisar salvar alterações na biblioteca de fotos."
+        "NSPhotoLibraryUsageDescription": "A Kleen precisa acessar suas fotos e vídeos para você revisar e organizar sua biblioteca.",
+        "NSPhotoLibraryAddUsageDescription": "A Kleen pode precisar salvar alterações autorizadas na sua biblioteca de fotos."
       }
     },
     "android": {
+      "package": "com.g4brieloliveira.kleen",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#121212"
+        "backgroundColor": "#5142C7"
       },
       "permissions": [
         "READ_MEDIA_IMAGES",
@@ -38,8 +40,8 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Permitir que o Clean Gallery acesse suas fotos para limpar a galeria.",
-          "savePhotosPermission": "Permitir que o Clean Gallery salve fotos.",
+          "photosPermission": "Permitir que a Kleen acesse suas fotos para revisar e organizar sua biblioteca.",
+          "savePhotosPermission": "Permitir que a Kleen salve alterações autorizadas na sua biblioteca.",
           "isAccessMediaLocationEnabled": true
         }
       ],

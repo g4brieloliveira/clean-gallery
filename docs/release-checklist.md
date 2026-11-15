@@ -1,4 +1,4 @@
-# Checklist de release — Clean Gallery
+# Checklist de release — Kleen
 
 Aprovador padrão dos gates: **Gabriel Oliveira** (ajustar se mudar o owner).
 

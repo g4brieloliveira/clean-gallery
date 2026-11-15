@@ -1,21 +1,28 @@
-/**
- * Design tokens aligned with the provided UI (dark theme).
- */
+/** Kleen design system — see docs/brand/BRAND_MANUAL.md. */
 export const colors = {
-  background: '#121212',
-  backgroundPure: '#000000',
-  surface: '#1C1C1E',
-  surfaceElevated: '#2C2C2E',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textMuted: '#636366',
-  borderNeutral: '#E8E8E8',
-  accentRed: '#FF4B4B',
-  accentGreen: '#4CAF50',
-  accentGreenHighlight: '#32D74B',
-  overlayRed: 'rgba(255, 75, 75, 0.35)',
-  overlayGreen: 'rgba(76, 175, 80, 0.35)',
-  iconOnAccent: '#FFFFFF',
+  background: '#121219',
+  backgroundPure: '#0D0D12',
+  surface: '#1B1B24',
+  surfaceElevated: '#252532',
+  borderNeutral: '#363542',
+  brandPrimary: '#5142C7',
+  brandPressed: '#4335AA',
+  brandSoft: '#B9B2FF',
+  brandTint: 'rgba(81, 66, 199, 0.16)',
+  textPrimary: '#F8F7FC',
+  textSecondary: '#AAA8B6',
+  textMuted: '#777583',
+  keep: '#53C987',
+  keepSoft: '#183A2A',
+  remove: '#FF6B6B',
+  removeSoft: '#3C2026',
+  /* Compatibility aliases while legacy components migrate to semantic names. */
+  accentRed: '#FF6B6B',
+  accentGreen: '#53C987',
+  accentGreenHighlight: '#53C987',
+  overlayRed: 'rgba(255, 107, 107, 0.28)',
+  overlayGreen: 'rgba(83, 201, 135, 0.28)',
+  iconOnAccent: '#F8F7FC',
 } as const;
 
 export type ColorToken = (typeof colors)[keyof typeof colors];
@@ -31,7 +38,7 @@ export const spacing = {
 } as const;
 
 export const radii = {
-  sm: 12,
+  sm: 14,
   md: 16,
   lg: 24,
   xl: 28,
@@ -39,7 +46,9 @@ export const radii = {
 } as const;
 
 export const typography = {
-  title: 22,
+  display: 32,
+  title: 24,
+  section: 20,
   subtitle: 15,
   body: 16,
   caption: 13,
