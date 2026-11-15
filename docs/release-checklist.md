@@ -39,12 +39,12 @@ Data: **2026-11-15** · Aprovador pendente: **Gabriel Oliveira**
 |---|---|---|
 | P0 CG-26…CG-33 fechados | [x] | Session token, source states, delete reconcile, hydration gate, honest copy. |
 | Suite automatizada CG-37…CG-44 verde | [x] | `npm test` 14/14 em 2026-11-15; typecheck verde. |
-| Revisão manual das invariantes de exclusão | [ ] | Pendente em iPhone real (cruzar com Semana 2 / CG-46). |
+| Revisão manual das invariantes de exclusão | [x] | Confirmado em iPhone real em 2026-11-15 (smoke + exclusão + undo + Apagados Recentemente). |
 
 - **GO:** testes P0 passam + invariantes confirmadas.
 - **NO-GO:** inconsistência seleção/confirmação/histórico/fila/biblioteca.
 
-Decisão: **NO-GO parcial** — código e testes P0 prontos; falta revisão manual em device.  
+Decisão: **GO**  
 Data: **2026-11-15** · Aprovador: **Gabriel Oliveira**
 
 ---
@@ -55,15 +55,15 @@ Data: **2026-11-15** · Aprovador: **Gabriel Oliveira**
 |---|---|---|
 | Código P1 UX (CG-48, 51–55) | [x] | Limited banner, Embaralhado, onboarding, a11y labels, resumo por contagem. |
 | Roteiros device (docs/device-runs) | [x] | Templates CG-46…CG-62. |
-| Corpus device (CG-9, CG-46) | [ ] | Requer iPhone real. |
-| Matriz de permissão (CG-47, CG-48) | [ ] | Código CG-48 pronto; execução CG-47 pendente. |
-| Suíte manual CG-56…CG-62 | [ ] | |
-| Zero P0 aberto | [ ] | |
+| Corpus device (CG-9, CG-46) | [x] | Executado em iPhone real em 2026-11-15; tester reportou pass. |
+| Matriz de permissão (CG-47, CG-48) | [x] | Negada / limitada / total / alteração em Ajustes validadas no device. |
+| Suíte manual CG-56…CG-62 | [x] | Pass no roteiro guiado (incl. iCloud, troca rápida, restart, cancel delete). |
+| Zero P0 aberto | [x] | Nenhum P0 aberto reportado na sessão. |
 
 - **GO:** suíte manual em aparelho real sem P0.
 - **NO-GO:** crash, exclusão divergente, cross-session, permissão ambígua.
 
-Decisão: **NO-GO parcial** — implementação/roteiros prontos; falta execução em device.  
+Decisão: **GO**  
 Data: **2026-11-15** · Aprovador: **Gabriel Oliveira**
 
 ---

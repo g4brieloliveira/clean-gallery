@@ -145,11 +145,11 @@ As semanas abaixo representam uma cadência indicativa, não uma promessa de dat
 
 ### P0
 
-- [ ] Testar em iPhone real com fotos locais, vídeos, itens somente no iCloud e biblioteca com mais de 10 mil itens.
-- [ ] Testar permissão total, limitada, negada e revogada durante o uso.
+- [x] Testar em iPhone real com fotos locais, vídeos, itens somente no iCloud e biblioteca com mais de 10 mil itens.
+- [x] Testar permissão total, limitada, negada e revogada durante o uso.
 - [x] Oferecer caminho claro para configurações e explicar quando apenas parte da biblioteca está disponível.
-- [ ] Validar interrupção, background/foreground, pouca memória e rede indisponível durante download do iCloud.
-- [ ] Confirmar o comportamento nativo de “Apagados Recentemente” na versão mínima de iOS suportada.
+- [x] Validar interrupção, background/foreground, pouca memória e rede indisponível durante download do iCloud.
+- [x] Confirmar o comportamento nativo de “Apagados Recentemente” na versão mínima de iOS suportada.
 
 ### P1
 
@@ -161,13 +161,13 @@ As semanas abaixo representam uma cadência indicativa, não uma promessa de dat
 
 ### Testes manuais obrigatórios
 
-- [ ] 100 ciclos consecutivos de manter/apagar/desfazer sem divergência.
-- [ ] Troca rápida entre pelo menos três álbuns durante paginação.
-- [ ] Fotos e vídeos locais e no iCloud, inclusive falhas de download.
-- [ ] Biblioteca com 10 mil ou mais itens e álbum acima do limite configurado.
-- [ ] Permissão limitada com alteração posterior da seleção permitida.
-- [ ] Cancelamento da confirmação nativa e falha de exclusão.
-- [ ] Reinício do app antes e depois de uma sessão.
+- [x] 100 ciclos consecutivos de manter/apagar/desfazer sem divergência.
+- [x] Troca rápida entre pelo menos três álbuns durante paginação.
+- [x] Fotos e vídeos locais e no iCloud, inclusive falhas de download.
+- [x] Biblioteca com 10 mil ou mais itens e álbum acima do limite configurado.
+- [x] Permissão limitada com alteração posterior da seleção permitida.
+- [x] Cancelamento da confirmação nativa e falha de exclusão.
+- [x] Reinício do app antes e depois de uma sessão.
 
 ### Critérios de aceite
 
@@ -241,6 +241,7 @@ Esta fase começa somente após o **GO** do beta técnico.
 ### P1
 
 - [ ] Implementar limite gratuito simples e compreensível, definindo fuso, virada do dia, reinstalação e funcionamento offline.
+- [ ] Oferecer **Assistir anúncio** para desbloquear +X revisões após o limite gratuito (teto diário; coexistir com Pro) — CG-111.
 - [ ] Selecionar um único recurso Pro validado pelo beta, como filtro por capturas ou vídeos grandes.
 - [ ] Testar ofertas e preços em vez de assumir os valores iniciais.
 
