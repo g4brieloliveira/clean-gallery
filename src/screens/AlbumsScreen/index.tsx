@@ -159,6 +159,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
   type ViewMode = 'list' | 'grid';
 
   const beginSession = useGalleryStore((s) => s.beginSession);
+  const hasHydrated = useGalleryStore((s) => s.hasHydrated);
   const keptAssetIds = useGalleryStore((s) => s.keptAssetIds);
   const toDeleteIds = useGalleryStore((s) => s.toDeleteIds);
   const validatedAlbumIds = useGalleryStore((s) => s.validatedAlbumIds);
@@ -265,6 +266,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
 
   const onSelectAlbum = useCallback(
     async (id: AlbumOptionId) => {
+      if (!hasHydrated) return;
       // Virtual albums are always available (even when empty) — they are not in `albums`.
       const album =
         id === 'approved'
@@ -277,18 +279,24 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
       setLoadingAssets(true);
       setErrorMessage(null);
       try {
-        const { assets, continueAlbumInBackground } = await loadSwipeSessionAssets(
-          {
-            mode: album.mode,
-            libraryAlbumId: album.libraryAlbumId,
-            keptAssetIds,
-            pendingDeleteAssetIds: toDeleteIds,
-          },
-          (batch) => useGalleryStore.getState().appendToQueue(batch),
-        );
-        beginSession({ album, assets });
+        const { assets, continueAlbumInBackground, initialSourceLoadState } =
+          await loadSwipeSessionAssets(
+            {
+              mode: album.mode,
+              libraryAlbumId: album.libraryAlbumId,
+              keptAssetIds,
+              pendingDeleteAssetIds: toDeleteIds,
+            },
+            (batch, sessionId) => useGalleryStore.getState().appendToQueue(batch, sessionId),
+            (state, sessionId) => useGalleryStore.getState().setSourceLoadState(state, sessionId),
+          );
+        const sessionId = beginSession({
+          album,
+          assets,
+          sourceLoadState: initialSourceLoadState,
+        });
         navigation.navigate('Swipe', { album });
-        continueAlbumInBackground?.();
+        continueAlbumInBackground?.(sessionId);
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Não foi possível carregar as mídias.';
         setErrorMessage(msg);
@@ -296,7 +304,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
         setLoadingAssets(false);
       }
     },
-    [albums, beginSession, keptAssetIds, navigation, toDeleteIds],
+    [albums, beginSession, hasHydrated, keptAssetIds, navigation, toDeleteIds],
   );
 
   const { randomOption, approvedOption, pendingDeleteOption, processedAlbums, totalAlbums } =

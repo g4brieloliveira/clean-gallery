@@ -32,6 +32,17 @@ export interface GalleryAsset {
 
 export type SwipeOutcome = 'delete' | 'keep';
 
+/**
+ * How the current session’s media source finished (or is finishing) loading.
+ * Not persisted. Distinguishes natural end from technical caps and stale sessions.
+ */
+export type SourceLoadState =
+  | 'loading'
+  | 'paginationComplete'
+  | 'partialByLimit'
+  | 'cancelled'
+  | 'failed';
+
 /** Single undo step in the current session. */
 export interface SwipeHistoryEntry {
   readonly assetId: string;

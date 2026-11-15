@@ -3,7 +3,13 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { clearResolvedUriCache } from '../services/mediaLibraryService';
 import { useMediaReadinessStore } from './mediaReadinessStore';
-import type { AlbumOption, GalleryAsset, SwipeHistoryEntry, SwipeOutcome } from '../types/domain';
+import type {
+  AlbumOption,
+  GalleryAsset,
+  SourceLoadState,
+  SwipeHistoryEntry,
+  SwipeOutcome,
+} from '../types/domain';
 
 const STORAGE_KEY = 'clean-gallery:v1';
 
@@ -21,11 +27,16 @@ interface GalleryState {
 
   /** Current swipe session (not persisted). */
   sessionSelection: SessionSelection | null;
+  /** Monotonic token; background pagers must match before appending. */
+  sessionId: number;
+  sourceLoadState: SourceLoadState;
   queue: GalleryAsset[];
   currentIndex: number;
   sessionDeleteCount: number;
   sessionKeepCount: number;
   sessionFailedCount: number;
+  /** Assets confirmed removed from the library in this session. */
+  sessionRemovedCount: number;
   history: SwipeHistoryEntry[];
 
   /** Hydration flag from persist middleware. */
@@ -35,8 +46,17 @@ interface GalleryState {
   isKept: (assetId: string) => boolean;
   isAlbumValidated: (albumId: string) => boolean;
   markAlbumValidated: (albumId: string) => void;
-  beginSession: (input: { album: AlbumOption; assets: readonly GalleryAsset[] }) => void;
-  appendToQueue: (incoming: readonly GalleryAsset[]) => void;
+  /**
+   * Starts a session and returns its `sessionId`.
+   * Policy: undo history is session-scoped and cleared on confirmed deletes (CG-26).
+   */
+  beginSession: (input: {
+    album: AlbumOption;
+    assets: readonly GalleryAsset[];
+    sourceLoadState?: SourceLoadState;
+  }) => number;
+  appendToQueue: (incoming: readonly GalleryAsset[], forSessionId: number) => void;
+  setSourceLoadState: (state: SourceLoadState, forSessionId: number) => void;
   resetSession: () => void;
   applySwipe: (outcome: SwipeOutcome, assetId: string) => void;
   /** Skip an unrenderable current asset and hide it from future sessions. */
@@ -45,7 +65,16 @@ interface GalleryState {
   deferCurrentToEnd: () => void;
   undoLast: () => void;
   clearPendingDeletes: () => void;
-  removeDeletedFromQueue: (deletedIds: readonly string[]) => void;
+  /**
+   * Apply a confirmed library deletion.
+   * Clears undo history (policy A) so undo never references removed media.
+   * Only removes `deletedIds` from pending; survivors stay in `toDeleteIds`.
+   */
+  applyConfirmedDeletes: (deletedIds: readonly string[]) => void;
+  /** Drop persisted keep IDs that no longer exist in the library. */
+  reconcileKeptAssetIds: (existingIds: readonly string[]) => void;
+  /** Whether the current album source was fully processed (not capped/cancelled). */
+  canMarkAlbumValidated: () => boolean;
 }
 
 function uniquePush(list: string[], id: string): string[] {
@@ -53,17 +82,22 @@ function uniquePush(list: string[], id: string): string[] {
   return [...list, id];
 }
 
+let nextSessionId = 1;
+
 export const useGalleryStore = create<GalleryState>()(
   persist(
     (set, get) => ({
       keptAssetIds: [],
       validatedAlbumIds: [],
       sessionSelection: null,
+      sessionId: 0,
+      sourceLoadState: 'paginationComplete',
       queue: [],
       currentIndex: 0,
       sessionDeleteCount: 0,
       sessionKeepCount: 0,
       sessionFailedCount: 0,
+      sessionRemovedCount: 0,
       toDeleteIds: [],
       history: [],
       hasHydrated: false,
@@ -74,46 +108,70 @@ export const useGalleryStore = create<GalleryState>()(
       isAlbumValidated: (albumId) => get().validatedAlbumIds.includes(albumId),
       markAlbumValidated: (albumId) => {
         const state = get();
+        if (!state.canMarkAlbumValidated()) return;
         if (state.validatedAlbumIds.includes(albumId)) return;
         set({ validatedAlbumIds: [...state.validatedAlbumIds, albumId] });
       },
 
-      beginSession: ({ album, assets }) => {
+      canMarkAlbumValidated: () => get().sourceLoadState === 'paginationComplete',
+
+      beginSession: ({ album, assets, sourceLoadState = 'paginationComplete' }) => {
         clearResolvedUriCache();
         useMediaReadinessStore.getState().clearAll();
         const kept = new Set(get().keptAssetIds);
         const isVirtualReview = album.mode === 'kept' || album.mode === 'pendingDelete';
         const filtered = isVirtualReview ? [...assets] : assets.filter((a) => !kept.has(a.id));
+        const sessionId = nextSessionId++;
         set({
           sessionSelection: { album },
+          sessionId,
+          sourceLoadState,
           queue: filtered,
           currentIndex: 0,
           sessionDeleteCount: 0,
           sessionKeepCount: 0,
           sessionFailedCount: 0,
+          sessionRemovedCount: 0,
           history: [],
         });
+        return sessionId;
       },
 
-      appendToQueue: (incoming) => {
+      appendToQueue: (incoming, forSessionId) => {
         const state = get();
+        if (state.sessionId !== forSessionId) return;
         const kept = new Set(state.keptAssetIds);
         const existing = new Set(state.queue.map((a) => a.id));
-        const merged = incoming.filter((a) => !kept.has(a.id) && !existing.has(a.id));
+        const merged: GalleryAsset[] = [];
+        for (const item of incoming) {
+          if (kept.has(item.id) || existing.has(item.id)) continue;
+          existing.add(item.id);
+          merged.push(item);
+        }
         if (merged.length === 0) return;
         set({ queue: [...state.queue, ...merged] });
+      },
+
+      setSourceLoadState: (sourceLoadState, forSessionId) => {
+        const state = get();
+        if (state.sessionId !== forSessionId) return;
+        set({ sourceLoadState });
       },
 
       resetSession: () => {
         clearResolvedUriCache();
         useMediaReadinessStore.getState().clearAll();
+        const sessionId = nextSessionId++;
         set({
           sessionSelection: null,
+          sessionId,
+          sourceLoadState: 'cancelled',
           queue: [],
           currentIndex: 0,
           sessionDeleteCount: 0,
           sessionKeepCount: 0,
           sessionFailedCount: 0,
+          sessionRemovedCount: 0,
           history: [],
         });
       },
@@ -213,7 +271,8 @@ export const useGalleryStore = create<GalleryState>()(
 
       clearPendingDeletes: () => set({ toDeleteIds: [] }),
 
-      removeDeletedFromQueue: (deletedIds) => {
+      applyConfirmedDeletes: (deletedIds) => {
+        if (deletedIds.length === 0) return;
         const idSet = new Set(deletedIds);
         const state = get();
         const nextQueue = state.queue.filter((a) => !idSet.has(a.id));
@@ -223,8 +282,27 @@ export const useGalleryStore = create<GalleryState>()(
         set({
           queue: nextQueue,
           currentIndex: Math.max(0, state.currentIndex - removedBeforeIndex),
-          toDeleteIds: [],
+          // Policy A (CG-26): clear undo after confirmed deletion so undo never
+          // references media already removed from the library.
+          history: [],
+          toDeleteIds: state.toDeleteIds.filter((id) => !idSet.has(id)),
+          keptAssetIds: state.keptAssetIds.filter((id) => !idSet.has(id)),
+          sessionRemovedCount: state.sessionRemovedCount + deletedIds.length,
         });
+      },
+
+      reconcileKeptAssetIds: (existingIds) => {
+        const existing = new Set(existingIds);
+        const state = get();
+        const nextKept = state.keptAssetIds.filter((id) => existing.has(id));
+        const nextPending = state.toDeleteIds.filter((id) => existing.has(id));
+        if (
+          nextKept.length === state.keptAssetIds.length &&
+          nextPending.length === state.toDeleteIds.length
+        ) {
+          return;
+        }
+        set({ keptAssetIds: nextKept, toDeleteIds: nextPending });
       },
     }),
     {
@@ -235,8 +313,12 @@ export const useGalleryStore = create<GalleryState>()(
         validatedAlbumIds: state.validatedAlbumIds,
         toDeleteIds: state.toDeleteIds,
       }),
-      onRehydrateStorage: () => () => {
+      onRehydrateStorage: () => (_state, error) => {
+        // Always unblock UI: failed storage still yields defaults + hydrated.
         useGalleryStore.getState().setHasHydrated(true);
+        if (error) {
+          console.warn('[galleryStore] rehydrate failed; using defaults');
+        }
       },
     },
   ),
@@ -248,4 +330,9 @@ export function selectCurrentAsset(state: GalleryState): GalleryAsset | null {
 
 export function selectRemainingCount(state: GalleryState): number {
   return Math.max(0, state.queue.length - state.currentIndex);
+}
+
+/** Reset monotonic session counter between tests. */
+export function __resetSessionIdCounterForTests(): void {
+  nextSessionId = 1;
 }
