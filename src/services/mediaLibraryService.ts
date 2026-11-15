@@ -65,11 +65,24 @@ const queuedPrefetchKeys = new Set<string>();
 let activePrefetchDownloads = 0;
 
 export type MediaPermissionStatus = MediaLibrary.PermissionResponse['status'];
+export type MediaAccessPrivileges = NonNullable<
+  MediaLibrary.PermissionResponse['accessPrivileges']
+>;
 
 export interface EnsurePermissionResult {
   readonly granted: boolean;
   readonly status: MediaPermissionStatus;
   readonly canAskAgain: boolean;
+  /** iOS: `limited` means only a user-selected subset of the library is visible. */
+  readonly accessPrivileges: MediaAccessPrivileges;
+}
+
+function normalizeAccessPrivileges(
+  value: MediaLibrary.PermissionResponse['accessPrivileges'],
+  granted: boolean,
+): MediaAccessPrivileges {
+  if (value === 'all' || value === 'limited' || value === 'none') return value;
+  return granted ? 'all' : 'none';
 }
 
 export interface LoadSwipeSessionAssetsResult {
@@ -204,13 +217,33 @@ interface ResolveDisplayableAssetUriOptions {
 export async function ensureMediaLibraryPermission(): Promise<EnsurePermissionResult> {
   const existing = await MediaLibrary.getPermissionsAsync();
   if (existing.granted) {
-    return { granted: true, status: existing.status, canAskAgain: existing.canAskAgain };
+    return {
+      granted: true,
+      status: existing.status,
+      canAskAgain: existing.canAskAgain,
+      accessPrivileges: normalizeAccessPrivileges(existing.accessPrivileges, true),
+    };
   }
   const requested = await MediaLibrary.requestPermissionsAsync();
   return {
     granted: requested.granted,
     status: requested.status,
     canAskAgain: requested.canAskAgain,
+    accessPrivileges: normalizeAccessPrivileges(
+      requested.accessPrivileges,
+      requested.granted,
+    ),
+  };
+}
+
+/** Re-read permission without prompting (e.g. after returning from Settings). */
+export async function getMediaLibraryPermissionSnapshot(): Promise<EnsurePermissionResult> {
+  const existing = await MediaLibrary.getPermissionsAsync();
+  return {
+    granted: existing.granted,
+    status: existing.status,
+    canAskAgain: existing.canAskAgain,
+    accessPrivileges: normalizeAccessPrivileges(existing.accessPrivileges, existing.granted),
   };
 }
 
@@ -275,10 +308,14 @@ export async function fetchAlbumOptionsForPicker(): Promise<readonly AlbumOption
   // totalCount comes from one library-wide query and therefore counts each asset once.
   const totalAssets = libraryPage.totalCount;
 
+  // Decision A (CG-51): honest label — batches are shuffled locally, not a global sample.
   const randomOption: AlbumOption = {
     id: 'random',
-    title: 'Aleatório',
-    subtitle: totalAssets > 0 ? 'Misturar toda a galeria' : 'Sem mídias disponíveis',
+    title: 'Embaralhado',
+    subtitle:
+      totalAssets > 0
+        ? 'Lotes recentes misturados (não é amostragem global)'
+        : 'Sem mídias disponíveis',
     assetCount: totalAssets,
     mode: 'random',
     libraryAlbumId: null,

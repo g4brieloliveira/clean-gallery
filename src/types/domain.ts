@@ -6,7 +6,7 @@ export type AlbumSelectionMode = 'random' | 'album' | 'kept' | 'pendingDelete';
 /** Stable key for list rendering and navigation params. */
 export type AlbumOptionId = `album:${string}` | 'random' | 'approved' | 'pending-delete';
 
-/** One row in the album picker (including synthetic "Aleatório"). */
+/** One row in the album picker (including synthetic "Embaralhado"). */
 export interface AlbumOption {
   readonly id: AlbumOptionId;
   readonly title: string;

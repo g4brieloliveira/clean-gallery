@@ -1,21 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   FlatList,
   LayoutAnimation,
   Linking,
   Platform,
   UIManager,
   useWindowDimensions,
+  type AppStateStatus,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AlbumListIconName } from '../../components/AlbumListItem/types';
 import { AlbumListItem } from '../../components/AlbumListItem';
 import { KleenBrand } from '../../components/KleenBrand';
+import { Onboarding } from '../../components/Onboarding';
 import {
   attachCoversToAlbumOptions,
   ensureMediaLibraryPermission,
   fetchAlbumOptionsForPicker,
+  getMediaLibraryPermissionSnapshot,
   loadSwipeSessionAssets,
 } from '../../services/mediaLibraryService';
 import type { AlbumOption, AlbumOptionId } from '../../types/domain';
@@ -43,6 +47,9 @@ import {
   HeaderRow,
   HeaderTextBlock,
   IconButton,
+  LimitedAccessBanner,
+  LimitedAccessBody,
+  LimitedAccessTitle,
   ListPad,
   LoadingCaption,
   LoadingOverlay,
@@ -160,11 +167,14 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
 
   const beginSession = useGalleryStore((s) => s.beginSession);
   const hasHydrated = useGalleryStore((s) => s.hasHydrated);
+  const hasSeenOnboarding = useGalleryStore((s) => s.hasSeenOnboarding);
+  const completeOnboarding = useGalleryStore((s) => s.completeOnboarding);
   const keptAssetIds = useGalleryStore((s) => s.keptAssetIds);
   const toDeleteIds = useGalleryStore((s) => s.toDeleteIds);
   const validatedAlbumIds = useGalleryStore((s) => s.validatedAlbumIds);
 
   const [permissionPhase, setPermissionPhase] = useState<AlbumsPermissionPhase>('checking');
+  const [accessLimited, setAccessLimited] = useState(false);
   const [albums, setAlbums] = useState<readonly AlbumOption[]>([]);
   const [loadingAlbums, setLoadingAlbums] = useState(false);
   const [loadingAssets, setLoadingAssets] = useState(false);
@@ -232,25 +242,42 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function run(): Promise<void> {
+  const applyPermissionAndLoad = useCallback(
+    async (mode: 'request' | 'snapshot'): Promise<void> => {
       try {
         setPermissionPhase('checking');
-        const result = await ensureMediaLibraryPermission();
-        if (cancelled) return;
-        if (!result.granted) {
+        const result =
+          mode === 'request'
+            ? await ensureMediaLibraryPermission()
+            : await getMediaLibraryPermissionSnapshot();
+        if (!result.granted || result.accessPrivileges === 'none') {
+          setAccessLimited(false);
           setPermissionPhase('denied');
           return;
         }
+        const limited = result.accessPrivileges === 'limited';
+        setAccessLimited(limited);
         await loadAlbums();
+        // Keep albums usable under limited access; surface a persistent banner.
+        if (limited) {
+          setPermissionPhase('limited');
+        }
       } catch (e) {
-        if (cancelled) return;
         const msg = e instanceof Error ? e.message : 'Falha ao verificar permissões da galeria.';
         setErrorMessage(msg);
         setPermissionPhase('error');
       }
+    },
+    [loadAlbums],
+  );
+
+  useEffect(() => {
+    if (!hasSeenOnboarding) return;
+    let cancelled = false;
+
+    async function run(): Promise<void> {
+      if (cancelled) return;
+      await applyPermissionAndLoad('request');
     }
 
     void run();
@@ -258,7 +285,21 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
       cancelled = true;
       loadRequestRef.current += 1;
     };
-  }, [loadAlbums]);
+  }, [applyPermissionAndLoad, hasSeenOnboarding]);
+
+  useEffect(() => {
+    if (!hasSeenOnboarding) return;
+
+    const onChange = (next: AppStateStatus): void => {
+      if (next !== 'active') return;
+      void applyPermissionAndLoad('snapshot');
+    };
+
+    const sub = AppState.addEventListener('change', onChange);
+    return () => {
+      sub.remove();
+    };
+  }, [applyPermissionAndLoad, hasSeenOnboarding]);
 
   const onOpenSettings = useCallback(() => {
     void Linking.openSettings();
@@ -383,6 +424,10 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     [onSelectAlbum, width],
   );
 
+  if (!hasSeenOnboarding) {
+    return <Onboarding onComplete={completeOnboarding} />;
+  }
+
   if (permissionPhase === 'checking') {
     return (
       <Screen edges={['top', 'left', 'right']}>
@@ -398,11 +443,16 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     return (
       <Screen edges={['top', 'left', 'right']}>
         <Centered>
-          <Muted>
-            Precisamos de acesso às suas fotos e vídeos para funcionar. Ative nas configurações do aparelho.
+          <Muted accessibilityRole="text">
+            Sem acesso à fototeca o Kleen não consegue listar suas mídias. Em Ajustes → Kleen → Fotos,
+            escolha “Todas as Fotos” ou “Fotos Selecionadas”.
           </Muted>
-          <PrimaryButton onPress={onOpenSettings}>
-            <PrimaryLabel>Abrir configurações</PrimaryLabel>
+          <PrimaryButton
+            onPress={onOpenSettings}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir ajustes do iPhone"
+          >
+            <PrimaryLabel>Abrir Ajustes</PrimaryLabel>
           </PrimaryButton>
         </Centered>
       </Screen>
@@ -530,11 +580,25 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
           <SummaryText>
             {processedAlbums.length} de {totalAlbums} álbum{totalAlbums === 1 ? '' : 'ns'}
           </SummaryText>
-          <SummaryText>
+          <SummaryText accessibilityLabel={`${uniqueLibraryMediaTotal} mídias únicas na biblioteca`}>
             {uniqueLibraryMediaTotal.toLocaleString('pt-BR')} mídia
-            {uniqueLibraryMediaTotal === 1 ? '' : 's'} na biblioteca
+            {uniqueLibraryMediaTotal === 1 ? '' : 's'} únicas
           </SummaryText>
         </SummaryCard>
+
+        {accessLimited || permissionPhase === 'limited' ? (
+          <LimitedAccessBanner
+            onPress={onOpenSettings}
+            accessibilityRole="button"
+            accessibilityLabel="Acesso limitado à fototeca. Abrir Ajustes para escolher mais fotos."
+          >
+            <LimitedAccessTitle>Acesso limitado à fototeca</LimitedAccessTitle>
+            <LimitedAccessBody>
+              Só parte das suas fotos está disponível. Toque para abrir Ajustes e permitir mais itens
+              (ou “Todas as Fotos”).
+            </LimitedAccessBody>
+          </LimitedAccessBanner>
+        ) : null}
 
         <ListPad>
           {loadingAlbums ? (

@@ -147,17 +147,17 @@ As semanas abaixo representam uma cadência indicativa, não uma promessa de dat
 
 - [ ] Testar em iPhone real com fotos locais, vídeos, itens somente no iCloud e biblioteca com mais de 10 mil itens.
 - [ ] Testar permissão total, limitada, negada e revogada durante o uso.
-- [ ] Oferecer caminho claro para configurações e explicar quando apenas parte da biblioteca está disponível.
+- [x] Oferecer caminho claro para configurações e explicar quando apenas parte da biblioteca está disponível.
 - [ ] Validar interrupção, background/foreground, pouca memória e rede indisponível durante download do iCloud.
 - [ ] Confirmar o comportamento nativo de “Apagados Recentemente” na versão mínima de iOS suportada.
 
 ### P1
 
-- [ ] Melhorar o modo aleatório ou renomeá-lo para não sugerir amostragem global quando houver paginação por lotes.
-- [ ] Corrigir contagens que possam somar a mesma mídia em múltiplos álbuns ou rotular a métrica com precisão.
-- [ ] Criar onboarding curto: permissão, gestos, processamento local e comportamento da exclusão.
-- [ ] Revisar acessibilidade: labels, foco, contraste, Dynamic Type e alternativas aos gestos.
-- [ ] Criar resultado de sessão por quantidade; calcular tamanho apenas se os metadados forem confiáveis e o custo aceitável.
+- [x] Melhorar o modo aleatório ou renomeá-lo para não sugerir amostragem global quando houver paginação por lotes.
+- [x] Corrigir contagens que possam somar a mesma mídia em múltiplos álbuns ou rotular a métrica com precisão.
+- [x] Criar onboarding curto: permissão, gestos, processamento local e comportamento da exclusão.
+- [x] Revisar acessibilidade: labels, foco, contraste, Dynamic Type e alternativas aos gestos.
+- [x] Criar resultado de sessão por quantidade; calcular tamanho apenas se os metadados forem confiáveis e o custo aceitável.
 
 ### Testes manuais obrigatórios
 

@@ -23,18 +23,28 @@ export function DeleteConfirmModal(props: DeleteConfirmModalProps): React.JSX.El
       <Backdrop>
         <DismissLayer onPress={onCancel} accessibilityLabel="Fechar" />
         <Panel>
-          <Title>Mover para Apagados Recentemente?</Title>
-          <Body>
+          <Title accessibilityRole="header">Mover para Apagados Recentemente?</Title>
+          <Body accessibilityRole="text">
             {pendingDeleteCount} mídia{pendingDeleteCount === 1 ? '' : 's'} irá
             {pendingDeleteCount === 1 ? '' : 'ão'} para “Apagados Recentemente” no iOS. O Kleen não
             consegue restaurá-la{pendingDeleteCount === 1 ? '' : 's'} depois, e o espaço pode não ser
             liberado imediatamente.
           </Body>
           <Row>
-            <GhostButton onPress={onCancel} disabled={loading}>
+            <GhostButton
+              onPress={onCancel}
+              disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel="Cancelar remoção"
+            >
               <GhostLabel>Cancelar</GhostLabel>
             </GhostButton>
-            <DangerButton onPress={onConfirm} disabled={loading}>
+            <DangerButton
+              onPress={onConfirm}
+              disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel={`Confirmar remoção de ${pendingDeleteCount} mídia${pendingDeleteCount === 1 ? '' : 's'}`}
+            >
               {loading ? (
                 <ActivityIndicator color={colors.textPrimary} />
               ) : (

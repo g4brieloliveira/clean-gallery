@@ -47,6 +47,7 @@ function resetStore(): void {
     keptAssetIds: [],
     validatedAlbumIds: [],
     toDeleteIds: [],
+    hasSeenOnboarding: true,
     sessionSelection: null,
     sessionId: 0,
     sourceLoadState: 'paginationComplete',

@@ -53,15 +53,18 @@ Data: **2026-11-15** · Aprovador: **Gabriel Oliveira**
 
 | Evidência | OK? | Nota |
 |---|---|---|
-| Corpus device (CG-9, CG-46) | [ ] | |
-| Matriz de permissão (CG-47, CG-48) | [ ] | |
+| Código P1 UX (CG-48, 51–55) | [x] | Limited banner, Embaralhado, onboarding, a11y labels, resumo por contagem. |
+| Roteiros device (docs/device-runs) | [x] | Templates CG-46…CG-62. |
+| Corpus device (CG-9, CG-46) | [ ] | Requer iPhone real. |
+| Matriz de permissão (CG-47, CG-48) | [ ] | Código CG-48 pronto; execução CG-47 pendente. |
 | Suíte manual CG-56…CG-62 | [ ] | |
 | Zero P0 aberto | [ ] | |
 
 - **GO:** suíte manual em aparelho real sem P0.
 - **NO-GO:** crash, exclusão divergente, cross-session, permissão ambígua.
 
-Decisão: _____________ Data: _____________ Aprovador: _____________
+Decisão: **NO-GO parcial** — implementação/roteiros prontos; falta execução em device.  
+Data: **2026-11-15** · Aprovador: **Gabriel Oliveira**
 
 ---
 
