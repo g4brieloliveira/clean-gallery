@@ -16,6 +16,7 @@ import {
   useGalleryStore,
 } from '../../store/galleryStore';
 import type { SwipeOutcome } from '../../types/domain';
+import { colors } from '../../theme/tokens';
 import {
   AlbumPickerChevron,
   AlbumPickerRow,
@@ -152,11 +153,12 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     <Screen edges={['top', 'left', 'right']}>
       <TopRow>
         <TitleBlock>
-          <ScreenTitle>Limpar Galeria</ScreenTitle>
+          <ScreenTitle>Revisar</ScreenTitle>
           <AlbumPickerRow onPress={openAlbums}>
-            <Ionicons name="images-outline" size={18} color="#AEAEB2" />
+            <Ionicons name="images-outline" size={18} color={colors.textSecondary} />
             <AlbumPickerText>
-              {album.title} <AlbumPickerChevron>›</AlbumPickerChevron>
+              {album.title} · {remaining} restante{remaining === 1 ? '' : 's'}{' '}
+              <AlbumPickerChevron>›</AlbumPickerChevron>
             </AlbumPickerText>
           </AlbumPickerRow>
         </TitleBlock>
@@ -168,7 +170,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             accessibilityRole="button"
             accessibilityLabel="Ver outra mídia deste álbum"
           >
-            <Ionicons name="shuffle-outline" size={22} color="#FFFFFF" />
+            <Ionicons name="shuffle-outline" size={22} color={colors.textSecondary} />
           </DeferButton>
           <UndoButton
             onPress={() => undoLast()}
@@ -177,7 +179,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             accessibilityRole="button"
             accessibilityLabel="Desfazer última ação"
           >
-            <Ionicons name="arrow-undo" size={22} color="#FFFFFF" />
+            <Ionicons name="arrow-undo" size={22} color={colors.textSecondary} />
           </UndoButton>
         </HeaderActions>
       </TopRow>
@@ -211,15 +213,16 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
 
       {!emptyQueueOnArrival && sessionFinished ? (
         <CardArea>
-          <EmptyTitle>Sessão concluída</EmptyTitle>
+          <EmptyTitle>Tudo pronto</EmptyTitle>
           <EmptyBody>
-            {toDeleteIds.length > 0
-              ? 'Revise e confirme para apagar as mídias marcadas da galeria.'
-              : 'Nenhuma mídia foi marcada para exclusão.'}
+            {sessionDeleteCount + sessionKeepCount} revisada
+            {sessionDeleteCount + sessionKeepCount === 1 ? '' : 's'} · {sessionKeepCount} mantida
+            {sessionKeepCount === 1 ? '' : 's'} · {toDeleteIds.length} pronta
+            {toDeleteIds.length === 1 ? '' : 's'} para remover.
           </EmptyBody>
           {toDeleteIds.length > 0 ? (
             <DangerCta onPress={() => setModalOpen(true)}>
-              <DangerCtaLabel>Apagar {toDeleteIds.length} na galeria</DangerCtaLabel>
+              <DangerCtaLabel>Revisar e remover {toDeleteIds.length}</DangerCtaLabel>
             </DangerCta>
           ) : (
             <NeutralCta onPress={openAlbums}>
@@ -232,8 +235,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       {toDeleteIds.length > 0 && currentAsset && !sessionFinished ? (
         <PendingStrip onPress={() => setModalOpen(true)}>
           <PendingStripLabel>
-            {toDeleteIds.length} mídia{toDeleteIds.length === 1 ? '' : 's'} na fila de exclusão — toque
-            para revisar
+            {toDeleteIds.length} pronta{toDeleteIds.length === 1 ? '' : 's'} para remover · Revisar
           </PendingStripLabel>
         </PendingStrip>
       ) : null}

@@ -7,17 +7,17 @@ export const Bar = styled.View`
   padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
   padding-bottom: ${({ theme }) => theme.spacing.xl}px;
   padding-top: ${({ theme }) => theme.spacing.md}px;
+  border-top-width: 1px;
+  border-top-color: ${({ theme }) => theme.colors.borderNeutral};
+  background-color: ${({ theme }) => theme.colors.backgroundPure};
 `;
 
 export const CircleButton = styled.TouchableOpacity<{ $variant: 'delete' | 'keep'; $muted: boolean }>`
-  width: 64px;
-  height: 64px;
-  border-radius: 32px;
-  border-width: 2px;
-  border-color: ${({ theme, $variant }) =>
-    $variant === 'delete' ? theme.colors.accentRed : theme.colors.accentGreen};
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
   background-color: ${({ theme, $variant }) =>
-    $variant === 'delete' ? 'rgba(255, 75, 75, 0.2)' : 'rgba(76, 175, 80, 0.2)'};
+    $variant === 'delete' ? theme.colors.remove : theme.colors.keep};
   align-items: center;
   justify-content: center;
   opacity: ${({ $muted }) => ($muted ? 0.4 : 1)};
@@ -50,5 +50,6 @@ export const CountKeep = styled.Text`
 export const Remaining = styled.Text`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.typography.small}px;
+  font-weight: 600;
   margin-top: ${({ theme }) => theme.spacing.xs}px;
 `;

@@ -23,11 +23,12 @@ export function DeleteConfirmModal(props: DeleteConfirmModalProps): React.JSX.El
       <Backdrop>
         <DismissLayer onPress={onCancel} accessibilityLabel="Fechar" />
         <Panel>
-          <Title>Apagar permanentemente?</Title>
+          <Title>Mover para Apagados Recentemente?</Title>
           <Body>
-            Você está prestes a remover {pendingDeleteCount} mídia
-            {pendingDeleteCount === 1 ? '' : 's'} da galeria do aparelho. Esta ação não pode ser
-            desfeita pelo app.
+            {pendingDeleteCount} mídia{pendingDeleteCount === 1 ? '' : 's'} será
+            {pendingDeleteCount === 1 ? '' : 'ão'} removida
+            {pendingDeleteCount === 1 ? '' : 's'} da galeria. O Kleen não poderá restaurá-la
+            {pendingDeleteCount === 1 ? '' : 's'}, e o espaço pode não ser liberado imediatamente.
           </Body>
           <Row>
             <GhostButton onPress={onCancel} disabled={loading}>
@@ -37,7 +38,7 @@ export function DeleteConfirmModal(props: DeleteConfirmModalProps): React.JSX.El
               {loading ? (
                 <ActivityIndicator color={colors.textPrimary} />
               ) : (
-                <DangerLabel>Apagar agora</DangerLabel>
+                <DangerLabel>Remover</DangerLabel>
               )}
             </DangerButton>
           </Row>
