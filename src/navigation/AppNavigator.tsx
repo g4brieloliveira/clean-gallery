@@ -34,7 +34,15 @@ export function AppNavigator(): React.JSX.Element {
         }}
       >
         <Stack.Screen name="Albums" component={AlbumsScreen} />
-        <Stack.Screen name="Swipe" component={SwipeScreen} />
+        <Stack.Screen
+          name="Swipe"
+          component={SwipeScreen}
+          options={{
+            // Keep edge-swipe free for keep/delete; back is an explicit control.
+            gestureEnabled: false,
+            fullScreenGestureEnabled: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
