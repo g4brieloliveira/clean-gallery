@@ -101,31 +101,31 @@ As semanas abaixo representam uma cadência indicativa, não uma promessa de dat
 
 ### P0
 
-- [ ] Corrigir o histórico após exclusão confirmada: limpar ou reconstruir entradas para que “desfazer” nunca referencie mídia removida.
-- [ ] Adicionar identidade/token de sessão à paginação e ignorar resultados de sessões antigas.
-- [ ] Representar explicitamente os estados `carregando`, `paginação concluída`, `parcial por limite`, `cancelado` e `falhou`.
-- [ ] Marcar álbum como validado somente quando toda a fonte prevista for processada; não tratar limite técnico como conclusão.
-- [ ] Remover IDs apagados de `keptAssetIds` e reconciliar ativos que deixaram de existir.
-- [ ] Impedir interação dependente de persistência antes da hidratação do Zustand.
-- [ ] Corrigir os textos de exclusão: explicar “Apagados Recentemente”, ausência de recuperação pelo app e liberação não imediata de espaço.
-- [ ] Definir o comportamento em falha parcial ou cancelamento do diálogo nativo de exclusão.
+- [x] Corrigir o histórico após exclusão confirmada: limpar ou reconstruir entradas para que “desfazer” nunca referencie mídia removida.
+- [x] Adicionar identidade/token de sessão à paginação e ignorar resultados de sessões antigas.
+- [x] Representar explicitamente os estados `carregando`, `paginação concluída`, `parcial por limite`, `cancelado` e `falhou`.
+- [x] Marcar álbum como validado somente quando toda a fonte prevista for processada; não tratar limite técnico como conclusão.
+- [x] Remover IDs apagados de `keptAssetIds` e reconciliar ativos que deixaram de existir.
+- [x] Impedir interação dependente de persistência antes da hidratação do Zustand.
+- [x] Corrigir os textos de exclusão: explicar “Apagados Recentemente”, ausência de recuperação pelo app e liberação não imediata de espaço.
+- [x] Definir o comportamento em falha parcial ou cancelamento do diálogo nativo de exclusão.
 
 ### P1
 
-- [ ] Informar quando a sessão cobre apenas parte de um álbum devido a limite.
-- [ ] Exibir quantidade apagada e mantida ao concluir; não mostrar GB sem cálculo confiável.
-- [ ] Registrar erros técnicos localmente de modo não sensível durante o beta.
+- [x] Informar quando a sessão cobre apenas parte de um álbum devido a limite.
+- [x] Exibir quantidade apagada e mantida ao concluir; não mostrar GB sem cálculo confiável.
+- [x] Registrar erros técnicos localmente de modo não sensível durante o beta.
 
 ### Testes automatizados obrigatórios
 
-- [ ] `galleryStore`: manter, apagar, desfazer, adiar e iniciar nova sessão.
-- [ ] Exclusão no meio da sessão seguida de desfazer.
-- [ ] Falha e sucesso parcial na exclusão.
-- [ ] Paginação antiga após troca rápida de álbum.
-- [ ] Conclusão enquanto ainda existe paginação.
-- [ ] Álbum maior que o limite técnico.
-- [ ] Hidratação com IDs mantidos, apagados e inexistentes.
-- [ ] Duplicação de lotes e chamadas repetidas.
+- [x] `galleryStore`: manter, apagar, desfazer, adiar e iniciar nova sessão.
+- [x] Exclusão no meio da sessão seguida de desfazer.
+- [x] Falha e sucesso parcial na exclusão.
+- [x] Paginação antiga após troca rápida de álbum.
+- [x] Conclusão enquanto ainda existe paginação.
+- [x] Álbum maior que o limite técnico.
+- [x] Hidratação com IDs mantidos, apagados e inexistentes.
+- [x] Duplicação de lotes e chamadas repetidas.
 
 ### Critérios de aceite
 
