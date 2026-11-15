@@ -21,6 +21,7 @@ import {
   AlbumPickerChevron,
   AlbumPickerRow,
   AlbumPickerText,
+  BackButton,
   CardArea,
   DangerCta,
   DangerCtaLabel,
@@ -152,6 +153,13 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   return (
     <Screen edges={['top', 'left', 'right']}>
       <TopRow>
+        <BackButton
+          onPress={openAlbums}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar aos álbuns"
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+        </BackButton>
         <TitleBlock>
           <ScreenTitle>Revisar</ScreenTitle>
           <AlbumPickerRow onPress={openAlbums}>

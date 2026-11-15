@@ -47,6 +47,18 @@ export const HeaderActions = styled.View`
   align-items: center;
 `;
 
+export const BackButton = styled.Pressable`
+  width: 44px;
+  height: 44px;
+  margin-right: ${({ theme }) => theme.spacing.sm}px;
+  border-radius: ${({ theme }) => theme.radii.full}px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-width: 1px;
+  border-color: ${({ theme }) => theme.colors.borderNeutral};
+  align-items: center;
+  justify-content: center;
+`;
+
 export const UndoButton = styled.Pressable<{ $dimmed: boolean }>`
   width: 44px;
   height: 44px;

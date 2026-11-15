@@ -62,47 +62,38 @@ export function useVideoPlayback(params: UseVideoPlaybackParams): UseVideoPlayba
   useEffect(() => {
     let cancelled = false;
     let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+    const readyRef = { current: false };
     if (!isVideo || !displayUri) return;
     if (mainLoadedUriRef.current === displayUri) return;
     mainLoadedUriRef.current = displayUri;
 
     setVideoLoadError(false);
 
-    void (async () => {
-      try {
-        await player.replaceAsync({ uri: displayUri });
-        fallbackTimer = setTimeout(() => {
-          if (cancelled) return;
-          if (!retriedRawUriRef.current && displayUri !== asset.uri) {
-            retriedRawUriRef.current = true;
-            mainLoadedUriRef.current = null;
-            onRequestFallbackUri?.();
-            return;
-          }
-          notifyVideoFailed();
-        }, 5000);
-      } catch {
-        if (cancelled) return;
-        if (!retriedRawUriRef.current && displayUri !== asset.uri) {
-          retriedRawUriRef.current = true;
-          mainLoadedUriRef.current = null;
-          onRequestFallbackUri?.();
-          return;
-        }
-        notifyVideoFailed();
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      safePausePlayer(player);
+    const clearFallbackTimer = (): void => {
+      if (!fallbackTimer) return;
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
     };
-  }, [asset.uri, displayUri, isVideo, notifyVideoFailed, player]);
 
-  useEffect(() => {
-    if (!isVideo) return;
+    // Start the watchdog before replaceAsync so a fast readyToPlay can cancel it.
+    fallbackTimer = setTimeout(() => {
+      if (cancelled || readyRef.current) return;
+      if (!retriedRawUriRef.current && displayUri !== asset.uri) {
+        retriedRawUriRef.current = true;
+        mainLoadedUriRef.current = null;
+        onRequestFallbackUri?.();
+        return;
+      }
+      notifyVideoFailed();
+    }, 8000);
+
     const sub = player.addListener('statusChange', (payload) => {
+      if (payload.status === 'readyToPlay') {
+        readyRef.current = true;
+        clearFallbackTimer();
+        setVideoLoadError(false);
+        return;
+      }
       if (payload.status === 'error') {
         if (payload.error?.message) {
           console.warn(`[SwipeCard] Video playback failed: ${payload.error.message}`);
@@ -115,14 +106,35 @@ export function useVideoPlayback(params: UseVideoPlaybackParams): UseVideoPlayba
           return;
         }
         notifyVideoFailed();
-      } else if (payload.status === 'readyToPlay') {
-        setVideoLoadError(false);
       }
     });
+
+    void (async () => {
+      try {
+        await player.replaceAsync({ uri: displayUri });
+        if (cancelled || readyRef.current) {
+          clearFallbackTimer();
+        }
+      } catch {
+        if (cancelled) return;
+        clearFallbackTimer();
+        if (!retriedRawUriRef.current && displayUri !== asset.uri) {
+          retriedRawUriRef.current = true;
+          mainLoadedUriRef.current = null;
+          onRequestFallbackUri?.();
+          return;
+        }
+        notifyVideoFailed();
+      }
+    })();
+
     return () => {
+      cancelled = true;
+      clearFallbackTimer();
       sub.remove();
+      safePausePlayer(player);
     };
-  }, [asset.uri, isVideo, notifyVideoFailed, onRequestFallbackUri, player]);
+  }, [asset.uri, displayUri, isVideo, notifyVideoFailed, onRequestFallbackUri, player]);
 
   useEffect(() => {
     let cancelled = false;

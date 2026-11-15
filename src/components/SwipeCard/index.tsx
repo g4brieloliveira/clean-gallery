@@ -178,7 +178,7 @@ export function SwipeCard(props: SwipeCardProps): React.JSX.Element {
           isVideo ? (
             <>
               <VideoView
-                key={`${asset.id}-${displayUri}`}
+                key={asset.id}
                 player={player}
                 nativeControls
                 contentFit="contain"

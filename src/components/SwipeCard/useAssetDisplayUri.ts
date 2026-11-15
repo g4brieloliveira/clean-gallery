@@ -18,27 +18,28 @@ interface UseAssetDisplayUriResult {
   readonly fallbackToAssetUri: () => void;
 }
 
-function initialDisplayUri(asset: GalleryAsset, isVideo: boolean): string | null {
+function initialDisplayUri(asset: GalleryAsset): string | null {
   if (!assetUriRequiresNativeResolution(asset.uri)) return asset.uri;
-  if (isVideo) return asset.uri;
   const hit = peekCachedDisplayUri(asset.id);
   if (hit !== undefined && !assetUriRequiresNativeResolution(hit)) {
     return hit;
   }
+  // Wait for a stable local URI. Starting on ph:// and later swapping to file://
+  // remounts expo-video mid-playback and looks like the clip "updates by itself".
   return null;
 }
 
 export function useAssetDisplayUri(params: UseAssetDisplayUriParams): UseAssetDisplayUriResult {
   const { asset, isVideo, onPhotoLoadFailed } = params;
-  const [displayUri, setDisplayUri] = useState<string | null>(() => initialDisplayUri(asset, isVideo));
+  const [displayUri, setDisplayUri] = useState<string | null>(() => initialDisplayUri(asset));
   const [uriError, setUriError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setUriError(false);
 
     if (!assetUriRequiresNativeResolution(asset.uri)) {
       setDisplayUri(asset.uri);
-      setUriError(false);
       return () => {
         cancelled = true;
       };
@@ -47,14 +48,12 @@ export function useAssetDisplayUri(params: UseAssetDisplayUriParams): UseAssetDi
     const cached = peekCachedDisplayUri(asset.id);
     if (cached !== undefined && !assetUriRequiresNativeResolution(cached)) {
       setDisplayUri(cached);
-      setUriError(false);
       return () => {
         cancelled = true;
       };
     }
 
-    setDisplayUri(isVideo ? asset.uri : null);
-    setUriError(false);
+    setDisplayUri(null);
 
     void (async () => {
       try {
@@ -92,7 +91,10 @@ export function useAssetDisplayUri(params: UseAssetDisplayUriParams): UseAssetDi
   }, [asset, isVideo, onPhotoLoadFailed]);
 
   const fallbackToAssetUri = useCallback((): void => {
-    setDisplayUri(asset.uri);
+    setDisplayUri((current) => {
+      if (current === asset.uri) return current;
+      return asset.uri;
+    });
     setUriError(false);
   }, [asset.uri]);
 
