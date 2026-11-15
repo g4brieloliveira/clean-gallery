@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import type {
   AlbumOption,
   AlbumOptionId,
@@ -228,7 +228,14 @@ async function collectAlbumsIncludingVideoBuckets(): Promise<MediaLibrary.Album[
 }
 
 export async function fetchAlbumOptionsForPicker(): Promise<readonly AlbumOption[]> {
-  const albums = await collectAlbumsIncludingVideoBuckets();
+  const [albums, libraryPage] = await Promise.all([
+    collectAlbumsIncludingVideoBuckets(),
+    MediaLibrary.getAssetsAsync({
+      first: 1,
+      mediaType: GALLERY_MEDIA_TYPES,
+      sortBy: MediaLibrary.SortBy.creationTime,
+    }),
+  ]);
 
   const mapped: AlbumOption[] = albums
     .filter((album) => album.assetCount > 0)
@@ -247,7 +254,9 @@ export async function fetchAlbumOptionsForPicker(): Promise<readonly AlbumOption
     };
     });
 
-  const totalAssets = mapped.reduce((acc, a) => acc + a.assetCount, 0);
+  // Album counts cannot be summed: the same asset may belong to multiple albums.
+  // totalCount comes from one library-wide query and therefore counts each asset once.
+  const totalAssets = libraryPage.totalCount;
 
   const randomOption: AlbumOption = {
     id: 'random',
@@ -395,40 +404,55 @@ export interface LoadAssetsForAlbumSelectionInput {
   readonly mode: AlbumSelectionMode;
   readonly libraryAlbumId: string | null;
   readonly keptAssetIds?: readonly string[];
+  readonly pendingDeleteAssetIds?: readonly string[];
 }
 
 export async function loadAssetsByIds(assetIds: readonly string[]): Promise<GalleryAsset[]> {
   if (assetIds.length === 0) return [];
   const picked = assetIds.slice(0, APPROVED_MAX_ASSETS);
-  const settled = await Promise.allSettled(
-    picked.map(async (id) => {
-      const info = await MediaLibrary.getAssetInfoAsync(id, {
-        shouldDownloadFromNetwork: false,
-      });
-      const uri = info.localUri ?? info.uri;
-      if (!uri) return null;
-      return {
-        id: info.id,
-        uri,
-        width: info.width ?? 0,
-        height: info.height ?? 0,
-        creationTime: info.creationTime ?? 0,
-        mediaType: info.mediaType,
-      } as GalleryAsset;
-    }),
-  );
-  return settled
-    .filter((x): x is PromiseFulfilledResult<GalleryAsset | null> => x.status === 'fulfilled')
-    .map((x) => x.value)
-    .filter((x): x is GalleryAsset => x !== null);
+  const assets: GalleryAsset[] = [];
+
+  // Thousands of concurrent getAssetInfoAsync calls can terminate Expo Go/native.
+  // Resolve small batches so virtual albums remain safe even after long-term use.
+  const concurrency = 8;
+  for (let i = 0; i < picked.length; i += concurrency) {
+    const batch = picked.slice(i, i + concurrency);
+    const settled = await Promise.allSettled(
+      batch.map(async (id) => {
+        const info = await MediaLibrary.getAssetInfoAsync(id, {
+          shouldDownloadFromNetwork: false,
+        });
+        const uri = info.localUri ?? info.uri;
+        if (!uri) return null;
+        return {
+          id: info.id,
+          uri,
+          width: info.width ?? 0,
+          height: info.height ?? 0,
+          creationTime: info.creationTime ?? 0,
+          mediaType: info.mediaType,
+        } as GalleryAsset;
+      }),
+    );
+    for (const result of settled) {
+      if (result.status === 'fulfilled' && result.value) {
+        assets.push(result.value);
+      }
+    }
+  }
+
+  return assets;
 }
 
 export async function loadSwipeSessionAssets(
   input: LoadAssetsForAlbumSelectionInput,
   appendToQueue: (batch: readonly GalleryAsset[]) => void,
 ): Promise<LoadSwipeSessionAssetsResult> {
-  if (input.mode === 'kept') {
-    const ids = input.keptAssetIds ?? [];
+  if (input.mode === 'kept' || input.mode === 'pendingDelete') {
+    const ids =
+      input.mode === 'kept'
+        ? (input.keptAssetIds ?? [])
+        : (input.pendingDeleteAssetIds ?? []);
     const assets = await loadAssetsByIds(ids);
     assets.sort((a, b) => b.creationTime - a.creationTime);
     return { assets, continueAlbumInBackground: null };

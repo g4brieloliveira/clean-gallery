@@ -1,10 +1,10 @@
-import type { MediaTypeValue } from 'expo-media-library';
+import type { MediaTypeValue } from 'expo-media-library/legacy';
 
 /** How the user chose to source photos for the swipe session. */
-export type AlbumSelectionMode = 'random' | 'album' | 'kept';
+export type AlbumSelectionMode = 'random' | 'album' | 'kept' | 'pendingDelete';
 
 /** Stable key for list rendering and navigation params. */
-export type AlbumOptionId = `album:${string}` | 'random' | 'approved';
+export type AlbumOptionId = `album:${string}` | 'random' | 'approved' | 'pending-delete';
 
 /** One row in the album picker (including synthetic "Aleatório"). */
 export interface AlbumOption {
@@ -36,6 +36,8 @@ export type SwipeOutcome = 'delete' | 'keep';
 export interface SwipeHistoryEntry {
   readonly assetId: string;
   readonly outcome: SwipeOutcome;
+  readonly wasKept: boolean;
+  readonly wasPendingDelete: boolean;
 }
 
 export function isGalleryVideo(asset: Pick<GalleryAsset, 'mediaType'>): boolean {
