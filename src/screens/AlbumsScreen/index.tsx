@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { AlbumListIconName } from '../../components/AlbumListItem/types';
 import { AlbumListItem } from '../../components/AlbumListItem';
+import { KleenBrand } from '../../components/KleenBrand';
 import {
   attachCoversToAlbumOptions,
   ensureMediaLibraryPermission,
@@ -21,8 +22,8 @@ import type { AlbumOption, AlbumOptionId } from '../../types/domain';
 import { useGalleryStore } from '../../store/galleryStore';
 import type { AlbumsScreenProps } from '../../navigation/types';
 import type { AlbumsPermissionPhase } from './types';
+import { colors } from '../../theme/tokens';
 import {
-  BackSpacer,
   Centered,
   CheckingCaption,
   Chip,
@@ -386,27 +387,26 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     <Screen edges={['top', 'left', 'right']}>
       <Content>
         <HeaderRow>
-          <BackSpacer />
           <HeaderTextBlock>
-            <Title>Álbuns</Title>
-            <Subtitle>Escolha de onde limpar</Subtitle>
+            <KleenBrand compact />
+            <Title>Que tal uma limpeza rápida?</Title>
+            <Subtitle>Escolha uma coleção e revise no seu ritmo.</Subtitle>
           </HeaderTextBlock>
-          <BackSpacer />
         </HeaderRow>
 
         <SearchWrap>
-          <Ionicons name="search-outline" size={18} color="#8E8E93" />
+          <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
           <SearchInput
             value={queryInput}
             onChangeText={setQueryInput}
             placeholder="Buscar álbum"
-            placeholderTextColor="#6E6E73"
+            placeholderTextColor={colors.textMuted}
             autoCorrect={false}
             autoCapitalize="none"
           />
           {queryInput.length > 0 ? (
             <IconButton onPress={() => setQueryInput('')}>
-              <Ionicons name="close" size={16} color="#FFFFFF" />
+              <Ionicons name="close" size={16} color={colors.textPrimary} />
             </IconButton>
           ) : null}
         </SearchWrap>
@@ -433,14 +433,22 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
                 setSortMenuOpen((v) => !v);
               }}
             >
-              <Ionicons name="swap-vertical-outline" size={18} color="#FFFFFF" />
+              <Ionicons name="swap-vertical-outline" size={18} color={colors.textPrimary} />
             </IconButton>
             <Segmented>
               <SegmentButton $active={viewMode === 'list'} onPress={() => switchViewMode('list')}>
-                <Ionicons name="list" size={16} color={viewMode === 'list' ? '#FFFFFF' : '#8E8E93'} />
+                <Ionicons
+                  name="list"
+                  size={16}
+                  color={viewMode === 'list' ? colors.textPrimary : colors.textSecondary}
+                />
               </SegmentButton>
               <SegmentButton $active={viewMode === 'grid'} onPress={() => switchViewMode('grid')}>
-                <Ionicons name="grid" size={16} color={viewMode === 'grid' ? '#FFFFFF' : '#8E8E93'} />
+                <Ionicons
+                  name="grid"
+                  size={16}
+                  color={viewMode === 'grid' ? colors.textPrimary : colors.textSecondary}
+                />
               </SegmentButton>
             </Segmented>
           </ToolbarRight>
@@ -502,25 +510,25 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
               {randomOption ? (
                 <RandomCard onPress={() => onSelectAlbum(randomOption.id)}>
                   <RandomIconBox>
-                    <Ionicons name="shuffle" size={24} color="#000000" />
+                    <Ionicons name="shuffle" size={24} color={colors.textPrimary} />
                   </RandomIconBox>
                   <RandomTextWrap>
                     <RandomTitle>{randomOption.title}</RandomTitle>
                     <RandomSubtitle>{randomOption.subtitle}</RandomSubtitle>
                   </RandomTextWrap>
-                  <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                 </RandomCard>
               ) : null}
               {approvedOption ? (
                 <RandomCard onPress={() => onSelectAlbum(approvedOption.id)}>
                   <RandomIconBox>
-                    <Ionicons name="checkmark-done-outline" size={24} color="#000000" />
+                    <Ionicons name="checkmark-done-outline" size={24} color={colors.textPrimary} />
                   </RandomIconBox>
                   <RandomTextWrap>
                     <RandomTitle>{approvedOption.title}</RandomTitle>
                     <RandomSubtitle>{approvedOption.subtitle}</RandomSubtitle>
                   </RandomTextWrap>
-                  <Ionicons name="chevron-forward" size={20} color="#A1A1AA" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                 </RandomCard>
               ) : null}
               <FlatList
@@ -538,8 +546,9 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
       </Content>
       {loadingAssets ? (
         <LoadingOverlay>
-          <ActivityIndicator color="#fff" size="large" />
-          <LoadingCaption>Carregando mídias…</LoadingCaption>
+          <KleenBrand />
+          <ActivityIndicator color={colors.brandSoft} size="small" />
+          <LoadingCaption>Preparando suas fotos…</LoadingCaption>
         </LoadingOverlay>
       ) : null}
       {errorMessage && !loadingAssets ? (

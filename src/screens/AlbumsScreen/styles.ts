@@ -21,18 +21,16 @@ export const HeaderRow = styled.View`
   padding-bottom: ${({ theme }) => theme.spacing.md}px;
 `;
 
-export const BackSpacer = styled.View`
-  width: 40px;
-`;
-
 export const HeaderTextBlock = styled.View`
   flex: 1;
 `;
 
 export const Title = styled.Text`
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.title + 6}px;
-  font-weight: 800;
+  font-size: ${({ theme }) => theme.typography.title + 2}px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  margin-top: ${({ theme }) => theme.spacing.xl}px;
 `;
 
 export const Subtitle = styled.Text`
@@ -44,12 +42,7 @@ export const Subtitle = styled.Text`
 export const SummaryCard = styled.View`
   margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
   margin-bottom: ${({ theme }) => theme.spacing.md}px;
-  background-color: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radii.md}px;
-  padding-vertical: ${({ theme }) => theme.spacing.sm}px;
-  padding-horizontal: ${({ theme }) => theme.spacing.md}px;
-  border-width: 1px;
-  border-color: rgba(255, 255, 255, 0.06);
+  padding-vertical: ${({ theme }) => theme.spacing.xs}px;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -111,16 +104,16 @@ export const Chip = styled.Pressable<{ $active: boolean }>`
   padding-horizontal: ${({ theme }) => theme.spacing.md}px;
   border-radius: 999px;
   background-color: ${({ theme, $active }) =>
-    $active ? theme.colors.accentGreenHighlight : theme.colors.surface};
+    $active ? theme.colors.brandPrimary : theme.colors.surface};
   border-width: 1px;
   border-color: ${({ theme, $active }) =>
-    $active ? theme.colors.accentGreenHighlight : 'rgba(255,255,255,0.09)'};
+    $active ? theme.colors.brandPrimary : theme.colors.borderNeutral};
   margin-right: ${({ theme }) => theme.spacing.sm}px;
 `;
 
 export const ChipText = styled.Text<{ $active: boolean }>`
-  color: ${({ theme, $active }) => ($active ? '#000000' : theme.colors.textSecondary)};
-  font-weight: 700;
+  color: ${({ theme, $active }) => ($active ? theme.colors.textPrimary : theme.colors.textSecondary)};
+  font-weight: 600;
   font-size: ${({ theme }) => theme.typography.caption}px;
 `;
 
@@ -174,11 +167,11 @@ export const SortOption = styled.Pressable<{ $active: boolean }>`
   padding-vertical: ${({ theme }) => theme.spacing.sm}px;
   padding-horizontal: ${({ theme }) => theme.spacing.md}px;
   background-color: ${({ theme, $active }) =>
-    $active ? 'rgba(80, 220, 100, 0.14)' : 'transparent'};
+    $active ? theme.colors.brandTint : 'transparent'};
 `;
 
 export const SortOptionText = styled.Text<{ $active: boolean }>`
-  color: ${({ theme, $active }) => ($active ? theme.colors.accentGreenHighlight : theme.colors.textPrimary)};
+  color: ${({ theme, $active }) => ($active ? theme.colors.brandSoft : theme.colors.textPrimary)};
   font-weight: ${({ $active }) => ($active ? 700 : 500)};
   font-size: ${({ theme }) => theme.typography.caption}px;
 `;
@@ -203,14 +196,14 @@ export const Muted = styled.Text`
 
 export const PrimaryButton = styled.Pressable`
   margin-top: ${({ theme }) => theme.spacing.lg}px;
-  background-color: ${({ theme }) => theme.colors.accentGreenHighlight};
+  background-color: ${({ theme }) => theme.colors.brandPrimary};
   padding-vertical: ${({ theme }) => theme.spacing.md}px;
   padding-horizontal: ${({ theme }) => theme.spacing.xxl}px;
   border-radius: ${({ theme }) => theme.radii.sm}px;
 `;
 
 export const PrimaryLabel = styled.Text`
-  color: #000000;
+  color: ${({ theme }) => theme.colors.textPrimary};
   font-weight: 700;
   font-size: ${({ theme }) => theme.typography.body}px;
 `;
@@ -221,9 +214,10 @@ export const LoadingOverlay = styled.View`
   right: 0;
   top: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.45);
+  background-color: ${({ theme }) => theme.colors.backgroundPure};
   align-items: center;
   justify-content: center;
+  gap: ${({ theme }) => theme.spacing.lg}px;
 `;
 
 export const LoadingCaption = styled(Muted)`
@@ -252,10 +246,10 @@ export const RandomCard = styled.Pressable`
   margin-bottom: ${({ theme }) => theme.spacing.sm}px;
   border-radius: ${({ theme }) => theme.radii.lg}px;
   border-width: 1px;
-  border-color: rgba(80, 220, 100, 0.38);
-  background-color: rgba(55, 160, 70, 0.16);
-  min-height: 84px;
-  padding: ${({ theme }) => theme.spacing.md}px;
+  border-color: ${({ theme }) => theme.colors.brandPrimary};
+  background-color: ${({ theme }) => theme.colors.brandTint};
+  min-height: 88px;
+  padding: ${({ theme }) => theme.spacing.lg}px;
   flex-direction: row;
   align-items: center;
 `;
@@ -266,7 +260,7 @@ export const RandomIconBox = styled.View`
   border-radius: ${({ theme }) => theme.radii.md}px;
   align-items: center;
   justify-content: center;
-  background-color: ${({ theme }) => theme.colors.accentGreenHighlight};
+  background-color: ${({ theme }) => theme.colors.brandPrimary};
   margin-right: ${({ theme }) => theme.spacing.md}px;
 `;
 
