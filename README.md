@@ -1,6 +1,10 @@
-# Clean Gallery
+# Kleen: Swipe Photo Cleaner
 
-App Expo (React Native + TypeScript) para limpar a galeria com gestos de swipe.
+App Expo (React Native + TypeScript) para revisar e organizar a galeria com gestos de swipe.
+
+**Your photos. Your choice.**
+
+Identidade e diretrizes de produto: [`docs/brand/BRAND_MANUAL.md`](docs/brand/BRAND_MANUAL.md).
 
 ## Rodar
 

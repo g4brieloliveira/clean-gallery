@@ -1,4 +1,4 @@
-# Plano de lançamento: Clean Gallery
+# Plano de lançamento: Kleen
 
 ## Objetivo e regra de execução
 
@@ -381,7 +381,7 @@ Não definir metas numéricas arbitrárias antes do beta. Registrar a baseline, 
 
 ## Definição final de pronto para lançamento
 
-O Clean Gallery está pronto somente quando:
+O Kleen está pronto somente quando:
 
 - todos os P0 estão fechados e verificados;
 - testes automatizados e manuais obrigatórios passaram;

@@ -32,8 +32,8 @@ Lista explícita em `app.json` → `expo.android.permissions` (mínimo atual):
 
 ```json
 {
-  "photosPermission": "Permitir que o Clean Gallery acesse suas fotos para limpar a galeria.",
-  "savePhotosPermission": "Permitir que o Clean Gallery salve fotos.",
+  "photosPermission": "Permitir que o Kleen acesse suas fotos para revisar sua galeria.",
+  "savePhotosPermission": "Permitir que o Kleen salve fotos.",
   "isAccessMediaLocationEnabled": true
 }
 ```
