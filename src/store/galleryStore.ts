@@ -16,6 +16,8 @@ interface GalleryState {
   keptAssetIds: string[];
   /** Persisted: albums fully validated by user in past sessions. */
   validatedAlbumIds: string[];
+  /** Persisted: user selections awaiting final removal confirmation. */
+  toDeleteIds: string[];
 
   /** Current swipe session (not persisted). */
   sessionSelection: SessionSelection | null;
@@ -24,7 +26,6 @@ interface GalleryState {
   sessionDeleteCount: number;
   sessionKeepCount: number;
   sessionFailedCount: number;
-  toDeleteIds: string[];
   history: SwipeHistoryEntry[];
 
   /** Hydration flag from persist middleware. */
@@ -81,7 +82,8 @@ export const useGalleryStore = create<GalleryState>()(
         clearResolvedUriCache();
         useMediaReadinessStore.getState().clearAll();
         const kept = new Set(get().keptAssetIds);
-        const filtered = album.mode === 'kept' ? [...assets] : assets.filter((a) => !kept.has(a.id));
+        const isVirtualReview = album.mode === 'kept' || album.mode === 'pendingDelete';
+        const filtered = isVirtualReview ? [...assets] : assets.filter((a) => !kept.has(a.id));
         set({
           sessionSelection: { album },
           queue: filtered,
@@ -89,7 +91,6 @@ export const useGalleryStore = create<GalleryState>()(
           sessionDeleteCount: 0,
           sessionKeepCount: 0,
           sessionFailedCount: 0,
-          toDeleteIds: [],
           history: [],
         });
       },
@@ -113,7 +114,6 @@ export const useGalleryStore = create<GalleryState>()(
           sessionDeleteCount: 0,
           sessionKeepCount: 0,
           sessionFailedCount: 0,
-          toDeleteIds: [],
           history: [],
         });
       },
@@ -134,22 +134,32 @@ export const useGalleryStore = create<GalleryState>()(
         const state = get();
         const current = state.queue[state.currentIndex];
         if (!current || current.id !== assetId) return;
+        const wasKept = state.keptAssetIds.includes(assetId);
+        const wasPendingDelete = state.toDeleteIds.includes(assetId);
 
         if (outcome === 'keep') {
           set({
             keptAssetIds: uniquePush(state.keptAssetIds, assetId),
+            toDeleteIds: state.toDeleteIds.filter((id) => id !== assetId),
             sessionKeepCount: state.sessionKeepCount + 1,
             currentIndex: state.currentIndex + 1,
-            history: [...state.history, { assetId, outcome: 'keep' }],
+            history: [
+              ...state.history,
+              { assetId, outcome: 'keep', wasKept, wasPendingDelete },
+            ],
           });
           return;
         }
 
         set({
           toDeleteIds: uniquePush(state.toDeleteIds, assetId),
+          keptAssetIds: state.keptAssetIds.filter((id) => id !== assetId),
           sessionDeleteCount: state.sessionDeleteCount + 1,
           currentIndex: state.currentIndex + 1,
-          history: [...state.history, { assetId, outcome: 'delete' }],
+          history: [
+            ...state.history,
+            { assetId, outcome: 'delete', wasKept, wasPendingDelete },
+          ],
         });
       },
 
@@ -178,7 +188,12 @@ export const useGalleryStore = create<GalleryState>()(
             history: nextHistory,
             currentIndex: nextIndex,
             sessionKeepCount: Math.max(0, state.sessionKeepCount - 1),
-            keptAssetIds: state.keptAssetIds.filter((id) => id !== last.assetId),
+            keptAssetIds: last.wasKept
+              ? uniquePush(state.keptAssetIds, last.assetId)
+              : state.keptAssetIds.filter((id) => id !== last.assetId),
+            toDeleteIds: last.wasPendingDelete
+              ? uniquePush(state.toDeleteIds, last.assetId)
+              : state.toDeleteIds.filter((id) => id !== last.assetId),
           });
           return;
         }
@@ -187,7 +202,12 @@ export const useGalleryStore = create<GalleryState>()(
           history: nextHistory,
           currentIndex: nextIndex,
           sessionDeleteCount: Math.max(0, state.sessionDeleteCount - 1),
-          toDeleteIds: state.toDeleteIds.filter((id) => id !== last.assetId),
+          keptAssetIds: last.wasKept
+            ? uniquePush(state.keptAssetIds, last.assetId)
+            : state.keptAssetIds.filter((id) => id !== last.assetId),
+          toDeleteIds: last.wasPendingDelete
+            ? uniquePush(state.toDeleteIds, last.assetId)
+            : state.toDeleteIds.filter((id) => id !== last.assetId),
         });
       },
 
@@ -213,6 +233,7 @@ export const useGalleryStore = create<GalleryState>()(
       partialize: (state) => ({
         keptAssetIds: state.keptAssetIds,
         validatedAlbumIds: state.validatedAlbumIds,
+        toDeleteIds: state.toDeleteIds,
       }),
       onRehydrateStorage: () => () => {
         useGalleryStore.getState().setHasHydrated(true);

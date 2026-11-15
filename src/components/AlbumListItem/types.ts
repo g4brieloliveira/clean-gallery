@@ -3,6 +3,7 @@ import type { AlbumOptionId } from '../../types/domain';
 export type AlbumListIconName =
   | 'shuffle'
   | 'checkmark-done-outline'
+  | 'close-circle-outline'
   | 'videocam-outline'
   | 'camera-outline'
   | 'phone-portrait-outline'

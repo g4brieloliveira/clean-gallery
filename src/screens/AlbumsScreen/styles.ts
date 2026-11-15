@@ -280,6 +280,33 @@ export const RandomSubtitle = styled.Text`
   margin-top: ${({ theme }) => theme.spacing.xs}px;
 `;
 
+export const VirtualAlbumsRow = styled.View`
+  flex-direction: row;
+  gap: ${({ theme }) => theme.spacing.sm}px;
+  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+`;
+
+export const VirtualAlbumCard = styled.Pressable`
+  flex: 1;
+  min-height: 116px;
+  border-radius: ${({ theme }) => theme.radii.lg}px;
+  border-width: 1px;
+  border-color: ${({ theme }) => theme.colors.brandPrimary};
+  background-color: ${({ theme }) => theme.colors.brandTint};
+  padding: ${({ theme }) => theme.spacing.md}px;
+  justify-content: space-between;
+`;
+
+export const VirtualAlbumIconBox = styled.View`
+  width: 40px;
+  height: 40px;
+  border-radius: ${({ theme }) => theme.radii.sm}px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ theme }) => theme.colors.surfaceElevated};
+  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+`;
+
 export const GridRowWrap = styled.View`
   width: 50%;
   padding-horizontal: 4px;

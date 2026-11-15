@@ -69,11 +69,15 @@ import {
   Toolbar,
   ToolbarRight,
   Title,
+  VirtualAlbumCard,
+  VirtualAlbumIconBox,
+  VirtualAlbumsRow,
 } from './styles';
 
 function mapAlbumToIcon(album: AlbumOption): AlbumListIconName {
   if (album.mode === 'random') return 'shuffle';
   if (album.mode === 'kept') return 'checkmark-done-outline';
+  if (album.mode === 'pendingDelete') return 'close-circle-outline';
   const t = album.title.toLowerCase();
   if (t.includes('vídeo') || t.includes('video') || t.includes('film')) return 'videocam-outline';
   if (t.includes('câmera') || t.includes('camera')) return 'camera-outline';
@@ -82,6 +86,32 @@ function mapAlbumToIcon(album: AlbumOption): AlbumListIconName {
   if (t.includes('download')) return 'download-outline';
   if (t.includes('selfie')) return 'person-outline';
   return 'person-outline';
+}
+
+function buildApprovedAlbumOption(keptCount: number): AlbumOption {
+  return {
+    id: 'approved',
+    title: 'Aprovadas',
+    subtitle: keptCount === 1 ? '1 mídia aprovada' : `${keptCount} mídias aprovadas`,
+    assetCount: keptCount,
+    mode: 'kept',
+    libraryAlbumId: null,
+    highlightIcon: false,
+    coverUri: null,
+  };
+}
+
+function buildPendingDeleteAlbumOption(pendingCount: number): AlbumOption {
+  return {
+    id: 'pending-delete',
+    title: 'Para remover',
+    subtitle: pendingCount === 1 ? '1 mídia selecionada' : `${pendingCount} mídias selecionadas`,
+    assetCount: pendingCount,
+    mode: 'pendingDelete',
+    libraryAlbumId: null,
+    highlightIcon: false,
+    coverUri: null,
+  };
 }
 
 interface GridAlbumCardProps {
@@ -130,6 +160,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
 
   const beginSession = useGalleryStore((s) => s.beginSession);
   const keptAssetIds = useGalleryStore((s) => s.keptAssetIds);
+  const toDeleteIds = useGalleryStore((s) => s.toDeleteIds);
   const validatedAlbumIds = useGalleryStore((s) => s.validatedAlbumIds);
 
   const [permissionPhase, setPermissionPhase] = useState<AlbumsPermissionPhase>('checking');
@@ -234,7 +265,13 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
 
   const onSelectAlbum = useCallback(
     async (id: AlbumOptionId) => {
-      const album = albums.find((a) => a.id === id);
+      // Virtual albums are always available (even when empty) — they are not in `albums`.
+      const album =
+        id === 'approved'
+          ? buildApprovedAlbumOption(keptAssetIds.length)
+          : id === 'pending-delete'
+            ? buildPendingDeleteAlbumOption(toDeleteIds.length)
+            : (albums.find((a) => a.id === id) ?? null);
       if (!album) return;
 
       setLoadingAssets(true);
@@ -245,6 +282,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
             mode: album.mode,
             libraryAlbumId: album.libraryAlbumId,
             keptAssetIds,
+            pendingDeleteAssetIds: toDeleteIds,
           },
           (batch) => useGalleryStore.getState().appendToQueue(batch),
         );
@@ -258,27 +296,14 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
         setLoadingAssets(false);
       }
     },
-    [albums, beginSession, keptAssetIds, navigation],
+    [albums, beginSession, keptAssetIds, navigation, toDeleteIds],
   );
 
-  const { randomOption, approvedOption, processedAlbums, totalAlbums } = useMemo(() => {
+  const { randomOption, approvedOption, pendingDeleteOption, processedAlbums, totalAlbums } =
+    useMemo(() => {
     const random = albums.find((item) => item.mode === 'random') ?? null;
-    const approved: AlbumOption | null =
-      keptAssetIds.length > 0
-        ? {
-            id: 'approved',
-            title: 'Aprovadas',
-            subtitle:
-              keptAssetIds.length === 1
-                ? '1 mídia aprovada'
-                : `${keptAssetIds.length} mídias aprovadas`,
-            assetCount: keptAssetIds.length,
-            mode: 'kept',
-            libraryAlbumId: null,
-            highlightIcon: false,
-            coverUri: null,
-          }
-        : null;
+    const approved = buildApprovedAlbumOption(keptAssetIds.length);
+    const pendingDelete = buildPendingDeleteAlbumOption(toDeleteIds.length);
     const baseAlbums = albums.filter((item) => item.mode === 'album' && item.assetCount > 0);
     const q = query.trim().toLowerCase();
 
@@ -305,15 +330,21 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     return {
       randomOption: random,
       approvedOption: approved,
+      pendingDeleteOption: pendingDelete,
       processedAlbums: sorted,
       totalAlbums: baseAlbums.length,
     };
-  }, [albums, filterMode, keptAssetIds.length, query, sortMode, validatedAlbumIds]);
+  }, [
+    albums,
+    filterMode,
+    keptAssetIds.length,
+    query,
+    sortMode,
+    toDeleteIds.length,
+    validatedAlbumIds,
+  ]);
 
-  const filteredMediaTotal = useMemo(
-    () => processedAlbums.reduce((acc, item) => acc + item.assetCount, 0),
-    [processedAlbums],
-  );
+  const uniqueLibraryMediaTotal = randomOption?.assetCount ?? 0;
 
   const renderItem = useCallback(
     ({ item }: { item: AlbumOption }) => (
@@ -492,7 +523,8 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
             {processedAlbums.length} de {totalAlbums} álbum{totalAlbums === 1 ? '' : 'ns'}
           </SummaryText>
           <SummaryText>
-            {filteredMediaTotal.toLocaleString('pt-BR')} mídia{filteredMediaTotal === 1 ? '' : 's'} no total
+            {uniqueLibraryMediaTotal.toLocaleString('pt-BR')} mídia
+            {uniqueLibraryMediaTotal === 1 ? '' : 's'} na biblioteca
           </SummaryText>
         </SummaryCard>
 
@@ -501,45 +533,65 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
             <Centered>
               <ActivityIndicator color="#fff" />
             </Centered>
-          ) : processedAlbums.length === 0 && !randomOption && !approvedOption ? (
-            <EmptyListCard>
-              <Muted>Nenhum álbum encontrado.</Muted>
-            </EmptyListCard>
           ) : (
             <>
-              {randomOption ? (
-                <RandomCard onPress={() => onSelectAlbum(randomOption.id)}>
-                  <RandomIconBox>
-                    <Ionicons name="shuffle" size={24} color={colors.textPrimary} />
-                  </RandomIconBox>
-                  <RandomTextWrap>
-                    <RandomTitle>{randomOption.title}</RandomTitle>
-                    <RandomSubtitle>{randomOption.subtitle}</RandomSubtitle>
-                  </RandomTextWrap>
-                  <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-                </RandomCard>
-              ) : null}
-              {approvedOption ? (
-                <RandomCard onPress={() => onSelectAlbum(approvedOption.id)}>
-                  <RandomIconBox>
-                    <Ionicons name="checkmark-done-outline" size={24} color={colors.textPrimary} />
-                  </RandomIconBox>
+              <VirtualAlbumsRow>
+                <VirtualAlbumCard onPress={() => onSelectAlbum(approvedOption.id)}>
+                  <VirtualAlbumIconBox>
+                    <Ionicons
+                      name="checkmark-done-outline"
+                      size={22}
+                      color={colors.keep}
+                    />
+                  </VirtualAlbumIconBox>
                   <RandomTextWrap>
                     <RandomTitle>{approvedOption.title}</RandomTitle>
                     <RandomSubtitle>{approvedOption.subtitle}</RandomSubtitle>
                   </RandomTextWrap>
-                  <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-                </RandomCard>
-              ) : null}
-              <FlatList
-                key={viewMode}
-                data={processedAlbums}
-                keyExtractor={(item) => item.id}
-                renderItem={viewMode === 'grid' ? renderGridItem : renderItem}
-                numColumns={viewMode === 'grid' ? 2 : 1}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 32 }}
-              />
+                </VirtualAlbumCard>
+                <VirtualAlbumCard onPress={() => onSelectAlbum(pendingDeleteOption.id)}>
+                  <VirtualAlbumIconBox>
+                    <Ionicons
+                      name="close-circle-outline"
+                      size={22}
+                      color={colors.remove}
+                    />
+                  </VirtualAlbumIconBox>
+                  <RandomTextWrap>
+                    <RandomTitle>{pendingDeleteOption.title}</RandomTitle>
+                    <RandomSubtitle>{pendingDeleteOption.subtitle}</RandomSubtitle>
+                  </RandomTextWrap>
+                </VirtualAlbumCard>
+              </VirtualAlbumsRow>
+              {processedAlbums.length === 0 && !randomOption ? (
+                <EmptyListCard>
+                  <Muted>Nenhum álbum encontrado.</Muted>
+                </EmptyListCard>
+              ) : (
+                <>
+                  {randomOption ? (
+                    <RandomCard onPress={() => onSelectAlbum(randomOption.id)}>
+                      <RandomIconBox>
+                        <Ionicons name="shuffle" size={24} color={colors.textPrimary} />
+                      </RandomIconBox>
+                      <RandomTextWrap>
+                        <RandomTitle>{randomOption.title}</RandomTitle>
+                        <RandomSubtitle>{randomOption.subtitle}</RandomSubtitle>
+                      </RandomTextWrap>
+                      <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                    </RandomCard>
+                  ) : null}
+                  <FlatList
+                    key={viewMode}
+                    data={processedAlbums}
+                    keyExtractor={(item) => item.id}
+                    renderItem={viewMode === 'grid' ? renderGridItem : renderItem}
+                    numColumns={viewMode === 'grid' ? 2 : 1}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 32 }}
+                  />
+                </>
+              )}
             </>
           )}
         </ListPad>
