@@ -1,10 +1,33 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1024" height="1024" rx="224" fill="#5142C7"/>
-  <g transform="translate(170 170)">
-    <rect x="36" y="34" width="430" height="374" rx="92" transform="rotate(-7 36 34)" fill="#F8F7FC"/>
-    <rect x="276" y="268" width="402" height="344" rx="88" transform="rotate(7 276 268)" fill="#B9B2FF"/>
-    <path d="M314 178L376 124L578 364L518 420L314 178Z" fill="#5142C7"/>
-    <path d="M344 344L414 284L602 510L536 566L344 344Z" fill="#F8F7FC"/>
-    <path d="M340 344L398 290L514 408L454 462L340 344Z" fill="#F8F7FC"/>
-  </g>
+  <!-- Exact production version of the approved Canvas mark. -->
+  <rect width="1024" height="1024" rx="256" fill="#5142C7"/>
+  <rect
+    x="205"
+    y="184"
+    width="532"
+    height="471"
+    rx="123"
+    fill="#F8F7FC"
+    transform="rotate(-7 471 420)"
+  />
+  <rect
+    x="399"
+    y="461"
+    width="492"
+    height="430"
+    rx="123"
+    fill="#5142C7"
+    stroke="#F8F7FC"
+    stroke-width="32"
+    transform="rotate(7 645 676)"
+  />
+  <rect
+    x="440"
+    y="205"
+    width="123"
+    height="635"
+    rx="62"
+    fill="#F8F7FC"
+    transform="rotate(-42 502 522)"
+  />
 </svg>
