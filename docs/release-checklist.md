@@ -16,19 +16,20 @@ Fonte: `PLANO_LANCAMENTO.md` + Epics CG-2…CG-7.
 
 | Evidência | OK? | Nota |
 |---|---|---|
-| Remoto git configurado (CG-16) | [ ] | |
-| Um único lockfile / npm (CG-10, CG-17) | [ ] | |
-| Scripts `typecheck` / `test` / `doctor` (CG-18) | [ ] | |
-| expo-doctor alinhado ou exceções (CG-19) | [ ] | |
-| Triagem de segurança (CG-20) | [ ] | |
-| Identidade + `eas.json` (CG-8, CG-21) | [ ] | |
-| Permissões revisadas (CG-22) | [ ] | |
-| README fiel ao código (CG-23) | [ ] | |
+| Remoto git configurado (CG-16) | [x] | GitHub configurado; PRs #1–#6 mergeados. |
+| Um único lockfile / npm (CG-10, CG-17) | [x] | `package-lock.json` é a fonte única. |
+| Scripts `typecheck` / `test` / `doctor` (CG-18) | [x] | Executados em 2026-11-15; testes e tipos verdes. |
+| expo-doctor alinhado ou exceções (CG-19) | [x] | 18/18 checks. |
+| Triagem de segurança (CG-20) | [x] | Card concluído. |
+| Identidade + `eas.json` (CG-8, CG-21) | [x] | Perfis validados e projeto EAS vinculado; build assinado depende de CG-12. |
+| Permissões revisadas (CG-22) | [x] | Permissões legadas e áudio bloqueados explicitamente. |
+| README fiel ao código (CG-23) | [x] | Limites, comportamento e comandos EAS documentados. |
 
 - **GO:** build reproduzível, ferramentas verdes ou exceções registradas, permissões revisadas, remoto ok.
 - **NO-GO:** dois lockfiles, build não reproduzível, identidade provisória, crítica sem triagem.
 
-Decisão: _____________ Data: _____________ Aprovador: _____________
+Decisão: **NO-GO** — falta validar build iOS assinado em aparelho físico após resolver CG-12.  
+Data: **2026-11-15** · Aprovador pendente: **Gabriel Oliveira**
 
 ---
 
