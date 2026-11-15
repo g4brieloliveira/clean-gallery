@@ -2,7 +2,7 @@ import styled from 'styled-components/native';
 
 export const Backdrop = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.72);
+  background-color: rgba(8, 8, 12, 0.82);
   justify-content: center;
   padding: ${({ theme }) => theme.spacing.xl}px;
 `;
@@ -18,7 +18,9 @@ export const DismissLayer = styled.Pressable`
 export const Panel = styled.View`
   z-index: 1;
   background-color: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radii.md}px;
+  border-radius: ${({ theme }) => theme.radii.lg}px;
+  border-width: 1px;
+  border-color: ${({ theme }) => theme.colors.borderNeutral};
   padding: ${({ theme }) => theme.spacing.xxl}px;
 `;
 
@@ -53,7 +55,7 @@ export const DangerButton = styled.Pressable`
   flex: 1;
   padding-vertical: ${({ theme }) => theme.spacing.md}px;
   border-radius: ${({ theme }) => theme.radii.sm}px;
-  background-color: ${({ theme }) => theme.colors.accentRed};
+  background-color: ${({ theme }) => theme.colors.remove};
   align-items: center;
 `;
 

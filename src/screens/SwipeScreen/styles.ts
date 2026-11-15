@@ -11,7 +11,8 @@ export const TopRow = styled.View`
   align-items: flex-start;
   justify-content: space-between;
   padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
-  padding-top: ${({ theme }) => theme.spacing.sm}px;
+  padding-top: ${({ theme }) => theme.spacing.md}px;
+  padding-bottom: ${({ theme }) => theme.spacing.md}px;
 `;
 
 export const TitleBlock = styled.View`
@@ -21,19 +22,19 @@ export const TitleBlock = styled.View`
 
 export const ScreenTitle = styled.Text`
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.typography.title + 2}px;
+  font-size: ${({ theme }) => theme.typography.title}px;
   font-weight: 800;
 `;
 
 export const AlbumPickerRow = styled.Pressable`
   flex-direction: row;
   align-items: center;
-  margin-top: ${({ theme }) => theme.spacing.sm}px;
+  margin-top: ${({ theme }) => theme.spacing.xs}px;
 `;
 
 export const AlbumPickerText = styled.Text`
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.typography.subtitle}px;
+  font-size: ${({ theme }) => theme.typography.caption}px;
   margin-left: ${({ theme }) => theme.spacing.sm}px;
 `;
 
@@ -49,8 +50,10 @@ export const HeaderActions = styled.View`
 export const UndoButton = styled.Pressable<{ $dimmed: boolean }>`
   width: 44px;
   height: 44px;
-  border-radius: ${({ theme }) => theme.radii.sm}px;
+  border-radius: ${({ theme }) => theme.radii.full}px;
   background-color: ${({ theme }) => theme.colors.surface};
+  border-width: 1px;
+  border-color: ${({ theme }) => theme.colors.borderNeutral};
   align-items: center;
   justify-content: center;
   opacity: ${({ $dimmed }) => ($dimmed ? 0.35 : 1)};
@@ -60,8 +63,10 @@ export const DeferButton = styled.Pressable<{ $dimmed: boolean }>`
   width: 44px;
   height: 44px;
   margin-right: ${({ theme }) => theme.spacing.sm}px;
-  border-radius: ${({ theme }) => theme.radii.sm}px;
+  border-radius: ${({ theme }) => theme.radii.full}px;
   background-color: ${({ theme }) => theme.colors.surface};
+  border-width: 1px;
+  border-color: ${({ theme }) => theme.colors.borderNeutral};
   align-items: center;
   justify-content: center;
   opacity: ${({ $dimmed }) => ($dimmed ? 0.35 : 1)};
@@ -90,16 +95,14 @@ export const EmptyBody = styled.Text`
 
 export const DangerCta = styled.Pressable`
   margin-top: ${({ theme }) => theme.spacing.xl}px;
-  background-color: ${({ theme }) => theme.colors.surface};
-  border-width: 1px;
-  border-color: ${({ theme }) => theme.colors.accentRed};
+  background-color: ${({ theme }) => theme.colors.remove};
   padding-vertical: ${({ theme }) => theme.spacing.md}px;
   padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
-  border-radius: ${({ theme }) => theme.radii.sm}px;
+  border-radius: ${({ theme }) => theme.radii.md}px;
 `;
 
 export const DangerCtaLabel = styled.Text`
-  color: ${({ theme }) => theme.colors.accentRed};
+  color: ${({ theme }) => theme.colors.textPrimary};
   font-weight: 800;
   text-align: center;
 `;
@@ -111,7 +114,7 @@ export const NeutralCta = styled.Pressable`
   border-color: ${({ theme }) => theme.colors.surfaceElevated};
   padding-vertical: ${({ theme }) => theme.spacing.md}px;
   padding-horizontal: ${({ theme }) => theme.spacing.xl}px;
-  border-radius: ${({ theme }) => theme.radii.sm}px;
+  border-radius: ${({ theme }) => theme.radii.md}px;
 `;
 
 export const NeutralCtaLabel = styled.Text`
@@ -124,14 +127,14 @@ export const PendingStrip = styled.Pressable`
   margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
   margin-bottom: ${({ theme }) => theme.spacing.sm}px;
   padding: ${({ theme }) => theme.spacing.md}px;
-  border-radius: ${({ theme }) => theme.radii.sm}px;
-  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.md}px;
+  background-color: ${({ theme }) => theme.colors.removeSoft};
   border-width: 1px;
-  border-color: ${({ theme }) => theme.colors.surfaceElevated};
+  border-color: ${({ theme }) => theme.colors.remove};
 `;
 
 export const PendingStripLabel = styled.Text`
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: ${({ theme }) => theme.colors.remove};
   font-weight: 700;
   text-align: center;
 `;

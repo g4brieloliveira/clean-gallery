@@ -26,7 +26,7 @@ export function BottomActionBar(props: BottomActionBarProps): React.JSX.Element 
         accessibilityRole="button"
         accessibilityLabel="Marcar para apagar"
       >
-        <Ionicons name="trash-outline" size={28} color={colors.textPrimary} />
+        <Ionicons name="close" size={32} color={colors.textPrimary} />
       </CircleButton>
       <Center>
         <CountRow>
@@ -46,7 +46,7 @@ export function BottomActionBar(props: BottomActionBarProps): React.JSX.Element 
         accessibilityRole="button"
         accessibilityLabel="Manter mídia"
       >
-        <Ionicons name="heart-outline" size={28} color={colors.textPrimary} />
+        <Ionicons name="checkmark" size={31} color={colors.textPrimary} />
       </CircleButton>
     </Bar>
   );
