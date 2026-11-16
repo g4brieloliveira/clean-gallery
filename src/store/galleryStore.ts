@@ -124,8 +124,11 @@ export const useGalleryStore = create<GalleryState>()(
         clearResolvedUriCache();
         useMediaReadinessStore.getState().clearAll();
         const kept = new Set(get().keptAssetIds);
+        const pendingDelete = new Set(get().toDeleteIds);
         const isVirtualReview = album.mode === 'kept' || album.mode === 'pendingDelete';
-        const filtered = isVirtualReview ? [...assets] : assets.filter((a) => !kept.has(a.id));
+        const filtered = isVirtualReview
+          ? [...assets]
+          : assets.filter((a) => !kept.has(a.id) && !pendingDelete.has(a.id));
         const sessionId = nextSessionId++;
         set({
           sessionSelection: { album },
@@ -146,10 +149,17 @@ export const useGalleryStore = create<GalleryState>()(
         const state = get();
         if (state.sessionId !== forSessionId) return;
         const kept = new Set(state.keptAssetIds);
+        const pendingDelete = new Set(state.toDeleteIds);
         const existing = new Set(state.queue.map((a) => a.id));
         const merged: GalleryAsset[] = [];
         for (const item of incoming) {
-          if (kept.has(item.id) || existing.has(item.id)) continue;
+          if (
+            kept.has(item.id) ||
+            pendingDelete.has(item.id) ||
+            existing.has(item.id)
+          ) {
+            continue;
+          }
           existing.add(item.id);
           merged.push(item);
         }

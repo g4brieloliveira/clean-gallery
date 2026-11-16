@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { BottomActionBar } from '../../components/BottomActionBar';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { PremiumPreviewModal } from '../../components/PremiumPreviewModal';
@@ -53,6 +54,7 @@ import {
 } from './styles';
 
 export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.Element {
+  const { t } = useTranslation();
   const { album } = route.params;
 
   const queue = useGalleryStore((s) => s.queue);
@@ -101,10 +103,13 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   }, [height, width]);
 
   const sessionFinished = queue.length > 0 && currentIndex >= queue.length;
+  const isVirtualAlbum =
+    album.mode === 'kept' || album.mode === 'pendingDelete';
+  const canInteract = isVirtualAlbum || canReviewToday;
   const canUndo = history.length > 0 && !sessionFinished;
   const canDefer =
     !sessionFinished &&
-    canReviewToday &&
+    canInteract &&
     !!currentAsset &&
     queue.length >= 2 &&
     currentIndex < queue.length - 1;
@@ -141,13 +146,13 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       // Guard against duplicate gesture/button callbacks consuming quota after
       // the gallery action already advanced to the next asset.
       if (!liveAsset || liveAsset.id !== currentAsset.id) return;
-      if (!consumeReview()) {
-        setLimitMessage('Seu limite de revisões de hoje terminou.');
+      if (!isVirtualAlbum && !consumeReview()) {
+        setLimitMessage(t('swipe.limitReached'));
         return;
       }
       applySwipe(outcome, currentAsset.id);
     },
-    [applySwipe, consumeReview, currentAsset],
+    [applySwipe, consumeReview, currentAsset, isVirtualAlbum, t],
   );
 
   const onBarDelete = useCallback(() => {
@@ -161,8 +166,8 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   const onUndo = useCallback(() => {
     if (history.length === 0) return;
     undoLast();
-    refundReview();
-  }, [history.length, refundReview, undoLast]);
+    if (!isVirtualAlbum) refundReview();
+  }, [history.length, isVirtualAlbum, refundReview, undoLast]);
 
   const onAssetLoadFailed = useCallback(() => {
     if (!currentAsset) return;
@@ -175,7 +180,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     try {
       const perm = await ensureMediaLibraryPermission();
       if (!perm.granted) {
-        setDeleteError('Permissão necessária para remover mídias.');
+        setDeleteError(t('swipe.permissionDelete'));
         setDeleteLoading(false);
         return;
       }
@@ -185,15 +190,18 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         applyConfirmedDeletes(result.deletedIds);
       }
       if (result.cancelled) {
-        setDeleteError('Remoção cancelada. Nada foi removido da galeria.');
+        setDeleteError(t('swipe.deleteCancelled'));
         setModalOpen(false);
         return;
       }
       if (result.remainingIds.length > 0) {
         setDeleteError(
           result.deletedIds.length > 0
-            ? `${result.deletedIds.length} removida(s); ${result.remainingIds.length} ainda pendente(s).`
-            : 'Não foi possível remover as mídias selecionadas.',
+            ? t('swipe.deletePartial', {
+                deleted: result.deletedIds.length,
+                remaining: result.remainingIds.length,
+              })
+            : t('swipe.deleteFailed'),
         );
         void logLocalError('delete.partial', 'Partial or failed delete', {
           deleted: result.deletedIds.length,
@@ -206,13 +214,13 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       }
       setModalOpen(false);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Falha ao remover.';
+      const msg = e instanceof Error ? e.message : t('swipe.deleteGenericError');
       setDeleteError(msg);
       void logLocalError('delete.failed', msg, { pending: toDeleteIds.length });
     } finally {
       setDeleteLoading(false);
     }
-  }, [applyConfirmedDeletes, toDeleteIds]);
+  }, [applyConfirmedDeletes, t, toDeleteIds]);
 
   const onWatchRewardedAd = useCallback(async () => {
     if (!canWatchRewardedAd || adLoading) return;
@@ -226,20 +234,20 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       if (result.adResult === 'completed') {
         setLimitMessage(
           result.granted
-            ? `Mais ${REWARDED_AD_BONUS_REVIEWS} revisões liberadas.`
-            : 'O teto diário de anúncios foi atingido.',
+            ? t('swipe.moreReviews', { count: REWARDED_AD_BONUS_REVIEWS })
+            : t('swipe.bonusFailed'),
         );
         return;
       }
       setLimitMessage(
         result.adResult === 'cancelled'
-          ? 'Anúncio cancelado; nenhum crédito foi adicionado.'
-          : 'Anúncio indisponível agora; nenhum crédito foi adicionado.',
+          ? t('swipe.adCancelled')
+          : t('swipe.adUnavailable'),
       );
     } finally {
       setAdLoading(false);
     }
-  }, [adLoading, canWatchRewardedAd, grantRewardedAdBonus]);
+  }, [adLoading, canWatchRewardedAd, grantRewardedAdBonus, t]);
 
   const onPremium = useCallback(() => {
     setPremiumMessage(null);
@@ -253,16 +261,14 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       const result = await premiumProvider.purchase();
       if (result === 'active') {
         setPremiumStatus('active');
-        setPremiumMessage('Premium ativado.');
+        setPremiumMessage(t('premium.active'));
         return;
       }
-      setPremiumMessage(
-        'Compra indisponível neste build. Nenhuma cobrança foi feita.',
-      );
+      setPremiumMessage(t('premium.purchaseUnavailable'));
     } finally {
       setPremiumLoading(false);
     }
-  }, [setPremiumStatus]);
+  }, [setPremiumStatus, t]);
 
   const onRestorePremium = useCallback(async () => {
     setPremiumLoading(true);
@@ -271,21 +277,19 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       const result = await premiumProvider.restore();
       if (result === 'active') {
         setPremiumStatus('active');
-        setPremiumMessage('Compra restaurada.');
+        setPremiumMessage(t('premium.restored'));
         return;
       }
       if (result === 'inactive') {
         setPremiumStatus('inactive');
-        setPremiumMessage('Nenhuma assinatura ativa foi encontrada.');
+        setPremiumMessage(t('premium.noActive'));
         return;
       }
-      setPremiumMessage(
-        'Restauração indisponível neste build. Tente novamente no build nativo.',
-      );
+      setPremiumMessage(t('premium.restoreUnavailable'));
     } finally {
       setPremiumLoading(false);
     }
-  }, [setPremiumStatus]);
+  }, [setPremiumStatus, t]);
 
   const emptyQueueOnArrival = queue.length === 0;
   const reviewedCount = sessionDeleteCount + sessionKeepCount;
@@ -296,19 +300,19 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         <BackButton
           onPress={openAlbums}
           accessibilityRole="button"
-          accessibilityLabel="Voltar aos álbuns"
+          accessibilityLabel={t('common.backToAlbums')}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </BackButton>
         <TitleBlock>
-          <ScreenTitle>Revisar</ScreenTitle>
+          <ScreenTitle>{t('swipe.title')}</ScreenTitle>
           <AlbumPickerRow onPress={openAlbums}>
             <Ionicons name="images-outline" size={18} color={colors.textSecondary} />
             <AlbumPickerText>
-              {album.title} · {remaining} restante{remaining === 1 ? '' : 's'}
+              {album.title} · {t('common.remaining', { count: remaining })}
               {reviewsRemainingToday === null
-                ? ' · Premium'
-                : ` · ${reviewsRemainingToday} hoje`}{' '}
+                ? ` · ${t('swipe.premium')}`
+                : ` · ${t('swipe.today', { count: reviewsRemainingToday })}`}{' '}
               <AlbumPickerChevron>›</AlbumPickerChevron>
             </AlbumPickerText>
           </AlbumPickerRow>
@@ -319,7 +323,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             disabled={!canDefer}
             $dimmed={!canDefer}
             accessibilityRole="button"
-            accessibilityLabel="Ver outra mídia deste álbum"
+            accessibilityLabel={t('swipe.another')}
           >
             <Ionicons name="shuffle-outline" size={22} color={colors.textSecondary} />
           </DeferButton>
@@ -328,7 +332,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             disabled={!canUndo}
             $dimmed={!canUndo}
             accessibilityRole="button"
-            accessibilityLabel="Desfazer última ação"
+            accessibilityLabel={t('swipe.undo')}
           >
             <Ionicons name="arrow-undo" size={22} color={colors.textSecondary} />
           </UndoButton>
@@ -337,24 +341,21 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
 
       {showPartialLimit ? (
         <PartialLimitBanner accessibilityRole="text">
-          Esta sessão cobre só parte do álbum por um limite técnico. O álbum não será marcado como
-          totalmente revisado.
+          {t('swipe.largeAlbum')}
         </PartialLimitBanner>
       ) : null}
 
       {emptyQueueOnArrival ? (
         <CardArea>
-          <EmptyTitle>Nada para limpar aqui</EmptyTitle>
-          <EmptyBody>
-            Não há mídias neste álbum ou todas já foram marcadas como “manter” anteriormente.
-          </EmptyBody>
+          <EmptyTitle>{t('swipe.emptyTitle')}</EmptyTitle>
+          <EmptyBody>{t('swipe.emptyBody')}</EmptyBody>
           <NeutralCta onPress={openAlbums}>
-            <NeutralCtaLabel>Escolher outro álbum</NeutralCtaLabel>
+            <NeutralCtaLabel>{t('swipe.chooseAlbum')}</NeutralCtaLabel>
           </NeutralCta>
         </CardArea>
       ) : null}
 
-      {!emptyQueueOnArrival && currentAsset && canReviewToday ? (
+      {!emptyQueueOnArrival && currentAsset && canInteract ? (
         <CardArea>
           <SwipeCard
             key={currentAsset.id}
@@ -364,12 +365,12 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             swipeThreshold={layout.swipeThreshold}
             onCommit={commitReview}
             onAssetLoadFailed={onAssetLoadFailed}
-            disabled={!canReviewToday}
+            disabled={!canInteract}
           />
         </CardArea>
       ) : null}
 
-      {!emptyQueueOnArrival && currentAsset && !canReviewToday ? (
+      {!emptyQueueOnArrival && currentAsset && !canInteract ? (
         <CardArea>
           <ReviewLimitPanel
             adBonus={REWARDED_AD_BONUS_REVIEWS}
@@ -387,41 +388,43 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
 
       {!emptyQueueOnArrival && sessionFinished ? (
         <CardArea>
-          <EmptyTitle>Tudo pronto</EmptyTitle>
+          <EmptyTitle>{t('swipe.done')}</EmptyTitle>
           <EmptyBody>
-            {reviewedCount} revisada{reviewedCount === 1 ? '' : 's'} · {sessionKeepCount} mantida
-            {sessionKeepCount === 1 ? '' : 's'}
+            {t('swipe.reviewed', { count: reviewedCount })} ·{' '}
+            {t('swipe.kept', { count: sessionKeepCount })}
             {sessionRemovedCount > 0
-              ? ` · ${sessionRemovedCount} enviada${sessionRemovedCount === 1 ? '' : 's'} para Apagados Recentemente`
+              ? ` · ${t('swipe.removed', { count: sessionRemovedCount })}`
               : toDeleteIds.length > 0
-                ? ` · ${toDeleteIds.length} pronta${toDeleteIds.length === 1 ? '' : 's'} para remover`
+                ? ` · ${t('swipe.ready', { count: toDeleteIds.length })}`
                 : ''}
             {sessionFailedCount > 0
-              ? ` · ${sessionFailedCount} falha${sessionFailedCount === 1 ? '' : 's'} de leitura`
+              ? ` · ${t('swipe.failure', { count: sessionFailedCount })}`
               : ''}
             .
           </EmptyBody>
           {toDeleteIds.length > 0 ? (
             <DangerCta onPress={() => setModalOpen(true)}>
-              <DangerCtaLabel>Revisar e remover {toDeleteIds.length}</DangerCtaLabel>
+              <DangerCtaLabel>
+                {t('swipe.reviewRemove', { count: toDeleteIds.length })}
+              </DangerCtaLabel>
             </DangerCta>
           ) : (
             <NeutralCta onPress={openAlbums}>
-              <NeutralCtaLabel>Voltar aos álbuns</NeutralCtaLabel>
+              <NeutralCtaLabel>{t('swipe.back')}</NeutralCtaLabel>
             </NeutralCta>
           )}
         </CardArea>
       ) : null}
 
-      {toDeleteIds.length > 0 && currentAsset && !sessionFinished && canReviewToday ? (
+      {toDeleteIds.length > 0 && currentAsset && !sessionFinished && canInteract ? (
         <PendingStrip onPress={() => setModalOpen(true)}>
           <PendingStripLabel>
-            {toDeleteIds.length} pronta{toDeleteIds.length === 1 ? '' : 's'} para remover · Revisar
+            {t('swipe.pendingStrip', { count: toDeleteIds.length })}
           </PendingStripLabel>
         </PendingStrip>
       ) : null}
 
-      {!emptyQueueOnArrival && !sessionFinished && canReviewToday ? (
+      {!emptyQueueOnArrival && !sessionFinished && canInteract ? (
         <BottomActionBar
           deleteCount={sessionDeleteCount}
           keepCount={sessionKeepCount}

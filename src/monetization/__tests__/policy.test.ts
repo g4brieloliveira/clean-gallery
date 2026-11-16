@@ -1,6 +1,5 @@
 import {
   FREE_DAILY_REVIEWS,
-  MAX_REWARDED_ADS_PER_DAY,
   REWARDED_AD_BONUS_REVIEWS,
   canConsumeReview,
   consumeReview,
@@ -29,24 +28,27 @@ describe('monetization policy', () => {
     expect(remainingReviews(nextDay, 'inactive')).toBe(FREE_DAILY_REVIEWS);
   });
 
-  it('grants a finite rewarded-ad bonus and applies the daily ad cap', () => {
+  it('grants repeatable rewarded-ad bonuses without a daily cap', () => {
     let ledger = {
       ...createDailyReviewLedger('2026-11-15'),
       reviewsUsed: FREE_DAILY_REVIEWS,
     };
 
-    for (let i = 0; i < MAX_REWARDED_ADS_PER_DAY; i += 1) {
+    const completedAds = 8;
+    for (let i = 0; i < completedAds; i += 1) {
       const next = grantRewardedAdBonus(ledger);
       expect(next).not.toBeNull();
-      ledger = next!;
+      ledger = next;
     }
 
     expect(ledger.bonusReviewsGranted).toBe(
-      REWARDED_AD_BONUS_REVIEWS * MAX_REWARDED_ADS_PER_DAY,
+      REWARDED_AD_BONUS_REVIEWS * completedAds,
     );
-    expect(grantRewardedAdBonus(ledger)).toBeNull();
+    expect(grantRewardedAdBonus(ledger).rewardedAdsCompleted).toBe(
+      completedAds + 1,
+    );
     expect(remainingReviews(ledger, 'inactive')).toBe(
-      REWARDED_AD_BONUS_REVIEWS * MAX_REWARDED_ADS_PER_DAY,
+      REWARDED_AD_BONUS_REVIEWS * completedAds,
     );
   });
 

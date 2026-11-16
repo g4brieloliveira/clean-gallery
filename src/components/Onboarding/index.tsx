@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/tokens';
 import {
   Body,
@@ -26,40 +27,40 @@ const SWIPE_VELOCITY = 0.35;
 interface Step {
   readonly key: string;
   readonly icon: keyof typeof Ionicons.glyphMap;
-  readonly title: string;
-  readonly body: string;
+  readonly titleKey: string;
+  readonly bodyKey: string;
 }
 
 const STEPS: readonly Step[] = [
   {
     key: 'permission',
     icon: 'images-outline',
-    title: 'Acesso à galeria',
-    body: 'O Kleen precisa da sua permissão para ler fotos e vídeos. Tudo fica no aparelho — nada é enviado para a nuvem do app.',
+    titleKey: 'onboarding.permissionTitle',
+    bodyKey: 'onboarding.permissionBody',
   },
   {
     key: 'gestures',
     icon: 'swap-horizontal-outline',
-    title: 'Gestos e botões',
-    body: 'Deslize para a direita para manter, para a esquerda para marcar remoção. Os botões na barra fazem o mesmo, com VoiceOver.',
+    titleKey: 'onboarding.gesturesTitle',
+    bodyKey: 'onboarding.gesturesBody',
   },
   {
     key: 'local',
     icon: 'phone-portrait-outline',
-    title: 'Processamento local',
-    body: 'A revisão roda só no seu iPhone. Decisões de “manter” e pendências de remoção ficam salvas neste aparelho.',
+    titleKey: 'onboarding.localTitle',
+    bodyKey: 'onboarding.localBody',
   },
   {
     key: 'delete',
     icon: 'trash-outline',
-    title: 'Remoção no iOS',
-    body: 'Ao confirmar, os itens vão para “Apagados Recentemente” no app Fotos. O Kleen não restaura depois, e o espaço pode não liberar na hora.',
+    titleKey: 'onboarding.deleteTitle',
+    bodyKey: 'onboarding.deleteBody',
   },
   {
     key: 'support',
     icon: 'document-text-outline',
-    title: 'Relatar um problema',
-    body: 'Em Configurações, compartilhe o relatório técnico sem fotos, vídeos ou endereços da galeria. Nunca envie suas mídias pessoais ao suporte.',
+    titleKey: 'onboarding.supportTitle',
+    bodyKey: 'onboarding.supportBody',
   },
 ];
 
@@ -68,6 +69,7 @@ interface OnboardingProps {
 }
 
 export function Onboarding({ onComplete }: OnboardingProps): React.JSX.Element {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const slideX = useRef(new Animated.Value(0)).current;
   const slideOpacity = useRef(new Animated.Value(1)).current;
@@ -191,15 +193,18 @@ export function Onboarding({ onComplete }: OnboardingProps): React.JSX.Element {
           <StepIcon>
             <Ionicons name={step.icon} size={36} color={colors.brandSoft} />
           </StepIcon>
-          <Title accessibilityRole="header">{step.title}</Title>
-          <Body>{step.body}</Body>
+          <Title accessibilityRole="header">{t(step.titleKey)}</Title>
+          <Body>{t(step.bodyKey)}</Body>
         </Slide>
         <Dots
           accessibilityRole="adjustable"
-          accessibilityLabel={`Passo ${index + 1} de ${STEPS.length}`}
+          accessibilityLabel={t('onboarding.step', {
+            current: index + 1,
+            total: STEPS.length,
+          })}
           accessibilityActions={[
-            { name: 'increment', label: 'Próximo passo' },
-            { name: 'decrement', label: 'Passo anterior' },
+            { name: 'increment', label: t('onboarding.nextA11y') },
+            { name: 'decrement', label: t('onboarding.previousA11y') },
           ]}
           onAccessibilityAction={(event) => {
             if (event.nativeEvent.actionName === 'increment') goNext();
@@ -219,16 +224,20 @@ export function Onboarding({ onComplete }: OnboardingProps): React.JSX.Element {
         <SecondaryButton
           onPress={onComplete}
           accessibilityRole="button"
-          accessibilityLabel="Pular introdução"
+          accessibilityLabel={t('onboarding.skipA11y')}
         >
-          <SecondaryLabel>{isLast ? ' ' : 'Pular'}</SecondaryLabel>
+          <SecondaryLabel>{isLast ? ' ' : t('onboarding.skip')}</SecondaryLabel>
         </SecondaryButton>
         <PrimaryButton
           onPress={handlePrimary}
           accessibilityRole="button"
-          accessibilityLabel={isLast ? 'Começar a usar o Kleen' : 'Próximo passo'}
+          accessibilityLabel={
+            isLast ? t('onboarding.startA11y') : t('onboarding.nextA11y')
+          }
         >
-          <PrimaryLabel>{isLast ? 'Começar' : 'Próximo'}</PrimaryLabel>
+          <PrimaryLabel>
+            {isLast ? t('onboarding.start') : t('onboarding.next')}
+          </PrimaryLabel>
         </PrimaryButton>
       </Footer>
     </Screen>

@@ -8,6 +8,7 @@ import type {
 } from '../types/domain';
 import { useMediaReadinessStore } from '../store/mediaReadinessStore';
 import { shuffleInPlace } from '../utils/random';
+import { i18n } from '../i18n';
 
 /** Paging size when loading more album assets in the background. */
 const ALBUM_PAGE_SIZE = 200;
@@ -294,8 +295,7 @@ export async function fetchAlbumOptionsForPicker(): Promise<readonly AlbumOption
     return {
       id,
       title: album.title,
-      subtitle:
-        album.assetCount === 1 ? '1 mídia' : `${album.assetCount} mídias`,
+      subtitle: i18n.t('common.media', { count: album.assetCount }),
       assetCount: album.assetCount,
       mode: 'album',
       libraryAlbumId: album.id,
@@ -308,14 +308,13 @@ export async function fetchAlbumOptionsForPicker(): Promise<readonly AlbumOption
   // totalCount comes from one library-wide query and therefore counts each asset once.
   const totalAssets = libraryPage.totalCount;
 
-  // Decision A (CG-51): honest label — batches are shuffled locally, not a global sample.
   const randomOption: AlbumOption = {
     id: 'random',
-    title: 'Embaralhado',
+    title: i18n.t('albums.random'),
     subtitle:
       totalAssets > 0
-        ? 'Lotes recentes misturados (não é amostragem global)'
-        : 'Sem mídias disponíveis',
+        ? i18n.t('albums.randomSubtitle')
+        : i18n.t('albums.noMedia'),
     assetCount: totalAssets,
     mode: 'random',
     libraryAlbumId: null,
@@ -531,12 +530,71 @@ export async function loadAssetsByIds(assetIds: readonly string[]): Promise<Gall
   return assets;
 }
 
+export interface AssetIdPage {
+  readonly assets: GalleryAsset[];
+  readonly nextOffset: number;
+  readonly hasNextPage: boolean;
+}
+
+export async function loadAssetsByIdsPage(
+  assetIds: readonly string[],
+  offset: number,
+  pageSize: number = 60,
+): Promise<AssetIdPage> {
+  const safeOffset = Math.max(0, offset);
+  const ids = assetIds.slice(safeOffset, safeOffset + pageSize);
+  const assets: GalleryAsset[] = [];
+  const concurrency = 8;
+
+  for (let i = 0; i < ids.length; i += concurrency) {
+    const batch = ids.slice(i, i + concurrency);
+    const settled = await Promise.allSettled(
+      batch.map(async (id) => {
+        const info = await MediaLibrary.getAssetInfoAsync(id, {
+          shouldDownloadFromNetwork: false,
+        });
+        const uri = info.localUri ?? info.uri;
+        if (!uri) return null;
+        return {
+          id: info.id,
+          uri,
+          width: info.width ?? 0,
+          height: info.height ?? 0,
+          creationTime: info.creationTime ?? 0,
+          mediaType: info.mediaType,
+        } as GalleryAsset;
+      }),
+    );
+    for (const result of settled) {
+      if (result.status === 'fulfilled' && result.value) {
+        assets.push(result.value);
+      }
+    }
+  }
+
+  const nextOffset = safeOffset + ids.length;
+  return {
+    assets,
+    nextOffset,
+    hasNextPage: nextOffset < assetIds.length,
+  };
+}
+
 export async function loadSwipeSessionAssets(
   input: LoadAssetsForAlbumSelectionInput,
   appendToQueue: AppendBatchFn,
   setSourceLoadState: SourceLoadStateFn,
   options?: { readonly albumBackgroundMax?: number; readonly randomMax?: number },
 ): Promise<LoadSwipeSessionAssetsResult> {
+  const excludeFromFreshReview = new Set([
+    ...(input.keptAssetIds ?? []),
+    ...(input.pendingDeleteAssetIds ?? []),
+  ]);
+  const withoutReviewed = (assets: readonly GalleryAsset[]): GalleryAsset[] =>
+    excludeFromFreshReview.size === 0
+      ? [...assets]
+      : assets.filter((asset) => !excludeFromFreshReview.has(asset.id));
+
   if (input.mode === 'kept' || input.mode === 'pendingDelete') {
     const ids =
       input.mode === 'kept'
@@ -566,7 +624,7 @@ export async function loadSwipeSessionAssets(
             )
         : null;
     return {
-      assets: first.initial,
+      assets: withoutReviewed(first.initial),
       continueAlbumInBackground,
       initialSourceLoadState: continueAlbumInBackground ? 'loading' : 'paginationComplete',
     };
@@ -603,7 +661,7 @@ export async function loadSwipeSessionAssets(
       : null;
 
   return {
-    assets,
+    assets: withoutReviewed(assets),
     continueAlbumInBackground,
     initialSourceLoadState: continueAlbumInBackground ? 'loading' : 'paginationComplete',
   };

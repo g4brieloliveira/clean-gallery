@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { i18n } from '../i18n';
 
 const STORAGE_KEY = 'kleen:local-error-log:v1';
 const MAX_ENTRIES = 40;
@@ -64,7 +65,7 @@ export async function logLocalError(
 
 export async function exportLocalErrorLog(): Promise<string> {
   const entries = await readEntries();
-  if (entries.length === 0) return 'Nenhum erro técnico registrado.';
+  if (entries.length === 0) return i18n.t('settings.noErrors');
   return entries
     .map((e) => {
       const ctx = e.context ? ` ${JSON.stringify(e.context)}` : '';

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/tokens';
 import {
   Actions,
@@ -29,6 +30,7 @@ interface ReviewLimitPanelProps {
 }
 
 export function ReviewLimitPanel(props: ReviewLimitPanelProps): React.JSX.Element {
+  const { t } = useTranslation();
   const {
     adBonus,
     canWatchAd,
@@ -44,10 +46,12 @@ export function ReviewLimitPanel(props: ReviewLimitPanelProps): React.JSX.Elemen
   return (
     <Panel accessibilityRole="summary">
       <Ionicons name="time-outline" size={38} color={colors.brandSoft} />
-      <Title accessibilityRole="header">Limite gratuito de hoje atingido</Title>
+      <Title accessibilityRole="header">{t('limit.title')}</Title>
       <Body>
-        Volte amanhã, conheça o Premium ou assista a um anúncio
-        {testMode ? ' de teste' : ''} para revisar mais {adBonus} mídias.
+        {t('limit.body', {
+          count: adBonus,
+          test: testMode ? t('limit.testSuffix') : '',
+        })}
       </Body>
       <Actions>
         <AdButton
@@ -57,8 +61,11 @@ export function ReviewLimitPanel(props: ReviewLimitPanelProps): React.JSX.Elemen
           accessibilityRole="button"
           accessibilityLabel={
             canWatchAd
-              ? `Assistir anúncio${testMode ? ' de teste' : ''} e liberar mais ${adBonus} revisões`
-              : 'Limite diário de anúncios atingido'
+              ? t('limit.watchA11y', {
+                  count: adBonus,
+                  test: testMode ? t('limit.testSuffix') : '',
+                })
+              : t('limit.unavailableA11y')
           }
         >
           {adLoading ? (
@@ -66,26 +73,31 @@ export function ReviewLimitPanel(props: ReviewLimitPanelProps): React.JSX.Elemen
           ) : (
             <AdButtonLabel>
               {canWatchAd
-                ? `Assistir anúncio${testMode ? ' de teste' : ''} · +${adBonus}`
-                : 'Limite de anúncios atingido'}
+                ? t('limit.watch', {
+                    count: adBonus,
+                    test: testMode ? t('limit.testSuffix') : '',
+                  })
+                : t('limit.unavailable')}
             </AdButtonLabel>
           )}
         </AdButton>
         <PremiumButton
           onPress={onPremium}
           accessibilityRole="button"
-          accessibilityLabel="Conhecer Premium"
+          accessibilityLabel={t('limit.premium')}
         >
-          <PremiumButtonLabel>Conhecer Premium</PremiumButtonLabel>
+          <PremiumButtonLabel>{t('limit.premium')}</PremiumButtonLabel>
         </PremiumButton>
         {pendingDeleteCount > 0 ? (
           <DeleteButton
             onPress={onReviewDeletes}
             accessibilityRole="button"
-            accessibilityLabel={`Revisar e remover ${pendingDeleteCount} mídias pendentes`}
+            accessibilityLabel={t('limit.pending', {
+              count: pendingDeleteCount,
+            })}
           >
             <DeleteButtonLabel>
-              Revisar remoções pendentes ({pendingDeleteCount})
+              {t('limit.pending', { count: pendingDeleteCount })}
             </DeleteButtonLabel>
           </DeleteButton>
         ) : null}

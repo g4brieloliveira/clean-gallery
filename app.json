@@ -6,12 +6,16 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "locales": {
+      "pt-BR": "./locales/pt-BR.json",
+      "en": "./locales/en.json"
+    },
     "ios": {
       "bundleIdentifier": "com.g4brieloliveira.kleen",
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "A Kleen precisa acessar suas fotos e vídeos para você revisar e organizar sua biblioteca.",
-        "NSPhotoLibraryAddUsageDescription": "A Kleen pode precisar salvar alterações autorizadas na sua biblioteca de fotos."
+        "NSPhotoLibraryUsageDescription": "O Kleen precisa acessar suas fotos e vídeos para você revisar e organizar sua biblioteca.",
+        "NSPhotoLibraryAddUsageDescription": "O Kleen pode salvar as alterações que você autorizar na sua fototeca."
       }
     },
     "android": {
@@ -38,8 +42,8 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Permitir que a Kleen acesse suas fotos para revisar e organizar sua biblioteca.",
-          "savePhotosPermission": "Permitir que a Kleen salve alterações autorizadas na sua biblioteca.",
+          "photosPermission": "Permitir que o Kleen acesse suas fotos para revisar e organizar sua biblioteca.",
+          "savePhotosPermission": "Permitir que o Kleen salve alterações autorizadas na sua biblioteca.",
           "isAccessMediaLocationEnabled": true
         }
       ],
@@ -53,7 +57,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0D0D12"
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "extra": {
       "eas": {

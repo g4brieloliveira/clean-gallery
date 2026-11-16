@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/tokens';
 import type { DeleteConfirmModalProps } from './types';
 import {
@@ -16,39 +17,40 @@ import {
 } from './styles';
 
 export function DeleteConfirmModal(props: DeleteConfirmModalProps): React.JSX.Element {
+  const { t } = useTranslation();
   const { visible, pendingDeleteCount, loading, onCancel, onConfirm } = props;
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
       <Backdrop>
-        <DismissLayer onPress={onCancel} accessibilityLabel="Fechar" />
+        <DismissLayer
+          onPress={onCancel}
+          accessibilityLabel={t('common.cancel')}
+        />
         <Panel>
-          <Title accessibilityRole="header">Mover para Apagados Recentemente?</Title>
+          <Title accessibilityRole="header">{t('delete.title')}</Title>
           <Body accessibilityRole="text">
-            {pendingDeleteCount} mídia{pendingDeleteCount === 1 ? '' : 's'} irá
-            {pendingDeleteCount === 1 ? '' : 'ão'} para “Apagados Recentemente” no iOS. O Kleen não
-            consegue restaurá-la{pendingDeleteCount === 1 ? '' : 's'} depois, e o espaço pode não ser
-            liberado imediatamente.
+            {t('delete.body', { count: pendingDeleteCount })}
           </Body>
           <Row>
             <GhostButton
               onPress={onCancel}
               disabled={loading}
               accessibilityRole="button"
-              accessibilityLabel="Cancelar remoção"
+              accessibilityLabel={t('delete.cancelA11y')}
             >
-              <GhostLabel>Cancelar</GhostLabel>
+              <GhostLabel>{t('common.cancel')}</GhostLabel>
             </GhostButton>
             <DangerButton
               onPress={onConfirm}
               disabled={loading}
               accessibilityRole="button"
-              accessibilityLabel={`Confirmar remoção de ${pendingDeleteCount} mídia${pendingDeleteCount === 1 ? '' : 's'}`}
+              accessibilityLabel={t('delete.removeA11y')}
             >
               {loading ? (
                 <ActivityIndicator color={colors.textPrimary} />
               ) : (
-                <DangerLabel>Remover</DangerLabel>
+                <DangerLabel>{t('delete.remove')}</DangerLabel>
               )}
             </DangerButton>
           </Row>

@@ -4,9 +4,14 @@ import type { AlbumOption } from '../types/domain';
 export type RootStackParamList = {
   Albums: undefined;
   Swipe: { album: AlbumOption };
+  VirtualAlbum: { album: AlbumOption };
   Settings: undefined;
 };
 
 export type AlbumsScreenProps = NativeStackScreenProps<RootStackParamList, 'Albums'>;
 export type SwipeScreenProps = NativeStackScreenProps<RootStackParamList, 'Swipe'>;
+export type VirtualAlbumScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  'VirtualAlbum'
+>;
 export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
