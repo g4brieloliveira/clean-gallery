@@ -49,3 +49,31 @@ Sem esse secret, o app usa a chave `test_` de fallback (só Test Store / Preview
 - Expo Go **não** apresenta paywall nativo.
 - `eas.json` production usa `autoIncrement` remoto para `buildNumber`.
 - Nenhum segredo Apple/RevenueCat deve ser commitado.
+
+## Bloqueio atual (2026-11-16)
+
+`eas device:list` / credentials retornam **No Apple teams found** para a conta Expo `g4brieloliveira`.
+
+Isso normalmente significa:
+
+1. Membership Apple Developer ainda processando após o pagamento, ou
+2. O Apple ID do programa ainda não foi vinculado no fluxo interativo do EAS.
+
+### Desbloqueio
+
+1. Confirme em https://developer.apple.com/account que o programa está **Active** e anote o Team ID
+2. No Terminal (fora do agente):
+
+```bash
+cd ~/www/clean-gallery
+npm run eas:dev
+# → Yes, log in to Apple account → Apple ID do Developer Program → 2FA
+```
+
+3. Com a chave `appl_…` do RevenueCat:
+
+```bash
+./scripts/set-revenuecat-ios-key.sh appl_XXXX
+```
+
+4. Depois: `npm run eas:prod` e `npm run eas:submit`
