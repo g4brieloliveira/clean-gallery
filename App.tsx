@@ -4,17 +4,21 @@ import { ActivityIndicator, View } from 'react-native';
 import { ThemeProvider } from 'styled-components/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KleenBrand } from './src/components/KleenBrand';
+import { premiumProvider } from './src/monetization/providers';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { filterExistingAssetIds } from './src/services/mediaLibraryService';
 import { useGalleryStore } from './src/store/galleryStore';
+import { useMonetizationStore } from './src/store/monetizationStore';
 import { appTheme } from './src/theme/appTheme';
 import { colors } from './src/theme/tokens';
 
 function HydrationGate({ children }: { readonly children: React.ReactNode }): React.JSX.Element {
-  const hasHydrated = useGalleryStore((s) => s.hasHydrated);
+  const galleryHydrated = useGalleryStore((s) => s.hasHydrated);
+  const monetizationHydrated = useMonetizationStore((s) => s.hasHydrated);
+  const hasHydrated = galleryHydrated && monetizationHydrated;
 
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!galleryHydrated) return;
 
     let cancelled = false;
     void (async () => {
@@ -34,7 +38,21 @@ function HydrationGate({ children }: { readonly children: React.ReactNode }): Re
     return () => {
       cancelled = true;
     };
-  }, [hasHydrated]);
+  }, [galleryHydrated]);
+
+  useEffect(() => {
+    if (!monetizationHydrated) return;
+    let cancelled = false;
+    void (async () => {
+      const status = await premiumProvider.getStatus();
+      if (!cancelled) {
+        useMonetizationStore.getState().setPremiumStatus(status);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [monetizationHydrated]);
 
   if (!hasHydrated) {
     return (
