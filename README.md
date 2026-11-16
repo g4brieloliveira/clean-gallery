@@ -44,6 +44,20 @@ e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
 3. **Swipe** — arraste à esquerda para marcar remoção; à direita para manter. Há botões na barra como alternativa aos gestos (acessibilidade). Vídeos usam controles nativos (play/pause).
 4. **Confirmação** — toque na faixa de remoção ou conclua a fila; o modal explica **Apagados Recentemente**. O resumo da sessão usa **contagens**, sem GB inventados.
 
+## Monetização pré-Apple
+
+O domínio de monetização já pode ser testado sem cobrança real:
+
+- 100 revisões gratuitas/dia (hipótese);
+- rewarded ad **de teste** libera +25, até 2 vezes/dia;
+- Premium usa um provider fake e ainda não cobra;
+- undo devolve a revisão; falha/skip/defer não consomem;
+- remoções já pendentes nunca são bloqueadas pelo limite.
+
+Providers nativos entram somente depois da conta Apple e devem preservar as
+interfaces em `src/monetization/providers.ts`. Regras e hipóteses:
+[`docs/monetization-hypotheses.md`](docs/monetization-hypotheses.md).
+
 ## Desempenho e limites
 
 Constantes em `src/services/mediaLibraryService.ts`:
@@ -68,4 +82,5 @@ Constantes em `src/services/mediaLibraryService.ts`:
 - Plano de lançamento: `PLANO_LANCAMENTO.md`
 - Checklist de gates: `docs/release-checklist.md`
 - Permissões: `docs/permissions.md`
+- Hipóteses de monetização: `docs/monetization-hypotheses.md`
 - Tooling: `docs/tooling.md`
