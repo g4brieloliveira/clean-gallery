@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Animated, FlatList, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAssetDisplayUri } from '../../components/SwipeCard/useAssetDisplayUri';
 import type { VirtualAlbumScreenProps } from '../../navigation/types';
@@ -11,10 +11,13 @@ import {
 import { useGalleryStore } from '../../store/galleryStore';
 import { colors } from '../../theme/tokens';
 import type { GalleryAsset } from '../../types/domain';
+import { SkeletonTile } from './SkeletonTile';
+import { VirtualAlbumPreview } from './VirtualAlbumPreview';
 import {
   BackButton,
   EmptyBody,
   EmptyTitle,
+  FadeTile,
   FooterLoader,
   GridGap,
   GridImage,
@@ -25,25 +28,47 @@ import {
   ReviewButton,
   ReviewButtonLabel,
   Screen,
-  Tile,
+  SkeletonFooter,
+  SkeletonGrid,
   TileFallback,
+  TilePressable,
 } from './styles';
 
 const PAGE_SIZE = 60;
+const STAGGER_MS = 38;
+const STAGGER_CAP = 20;
 
 function PhotoTile({
   asset,
   size,
+  enterDelay,
 }: {
   readonly asset: GalleryAsset;
   readonly size: number;
+  readonly enterDelay: number;
 }): React.JSX.Element {
   const { displayUri, uriError } = useAssetDisplayUri({
     asset,
     isVideo: false,
   });
+  const opacity = useRef(new Animated.Value(0)).current;
 
-  if (!displayUri || uriError) {
+  useEffect(() => {
+    if (!displayUri || uriError) return;
+    opacity.setValue(0);
+    const anim = Animated.timing(opacity, {
+      toValue: 1,
+      duration: 240,
+      delay: enterDelay,
+      useNativeDriver: true,
+    });
+    anim.start();
+    return () => {
+      anim.stop();
+    };
+  }, [displayUri, enterDelay, opacity, uriError]);
+
+  if (uriError) {
     return (
       <TileFallback $size={size}>
         <Ionicons name="image-outline" size={24} color={colors.textMuted} />
@@ -51,26 +76,120 @@ function PhotoTile({
     );
   }
 
-  return <GridImage $size={size} source={{ uri: displayUri }} resizeMode="cover" />;
+  if (!displayUri) {
+    return <SkeletonTile size={size} delayMs={enterDelay} />;
+  }
+
+  return (
+    <FadeTile $size={size} style={{ opacity }}>
+      <GridImage $size={size} source={{ uri: displayUri }} resizeMode="cover" />
+    </FadeTile>
+  );
 }
 
 function MediaTile({
   asset,
   size,
+  index,
+  onOpen,
 }: {
   readonly asset: GalleryAsset;
   readonly size: number;
+  readonly index: number;
+  readonly onOpen: () => void;
+}): React.JSX.Element {
+  const { t } = useTranslation();
+  const enterDelay = Math.min(index, STAGGER_CAP) * STAGGER_MS;
+
+  return (
+    <TilePressable
+      $size={size}
+      onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel={t('virtualAlbum.openPreviewA11y')}
+    >
+      {asset.mediaType === 'video' ? (
+        <FadeInShell size={size} delayMs={enterDelay}>
+          <TileFallback $size={size}>
+            <Ionicons name="videocam" size={26} color={colors.brandSoft} />
+          </TileFallback>
+        </FadeInShell>
+      ) : (
+        <PhotoTile asset={asset} size={size} enterDelay={enterDelay} />
+      )}
+    </TilePressable>
+  );
+}
+
+function FadeInShell({
+  size,
+  delayMs,
+  children,
+}: {
+  readonly size: number;
+  readonly delayMs: number;
+  readonly children: React.ReactNode;
+}): React.JSX.Element {
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = Animated.timing(opacity, {
+      toValue: 1,
+      duration: 240,
+      delay: delayMs,
+      useNativeDriver: true,
+    });
+    anim.start();
+    return () => {
+      anim.stop();
+    };
+  }, [delayMs, opacity]);
+
+  return (
+    <FadeTile $size={size} style={{ opacity }}>
+      {children}
+    </FadeTile>
+  );
+}
+
+function InitialSkeleton({
+  columns,
+  tileSize,
+}: {
+  readonly columns: number;
+  readonly tileSize: number;
+}): React.JSX.Element {
+  const count = columns * 6;
+  return (
+    <SkeletonGrid>
+      {Array.from({ length: count }, (_, index) => (
+        <SkeletonTile
+          key={`skeleton-${index}`}
+          size={tileSize}
+          delayMs={(index % columns) * 70}
+        />
+      ))}
+    </SkeletonGrid>
+  );
+}
+
+function MoreSkeleton({
+  columns,
+  tileSize,
+}: {
+  readonly columns: number;
+  readonly tileSize: number;
 }): React.JSX.Element {
   return (
-    <Tile $size={size}>
-      {asset.mediaType === 'video' ? (
-        <TileFallback $size={size}>
-          <Ionicons name="videocam" size={26} color={colors.brandSoft} />
-        </TileFallback>
-      ) : (
-        <PhotoTile asset={asset} size={size} />
-      )}
-    </Tile>
+    <SkeletonFooter>
+      {Array.from({ length: columns }, (_, index) => (
+        <SkeletonTile
+          key={`more-${index}`}
+          size={tileSize}
+          delayMs={index * 70}
+        />
+      ))}
+    </SkeletonFooter>
   );
 }
 
@@ -93,6 +212,8 @@ export function VirtualAlbumScreen({
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingReview, setLoadingReview] = useState(false);
+  const [revealBase, setRevealBase] = useState(0);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const requestRef = useRef(0);
 
   useEffect(() => {
@@ -100,6 +221,7 @@ export function VirtualAlbumScreen({
     requestRef.current = requestId;
     setLoading(true);
     setAssets([]);
+    setRevealBase(0);
 
     void loadAssetsByIdsPage(orderedIds, 0, PAGE_SIZE)
       .then((page) => {
@@ -107,6 +229,7 @@ export function VirtualAlbumScreen({
         setAssets(page.assets);
         setNextOffset(page.nextOffset);
         setHasNextPage(page.hasNextPage);
+        setRevealBase(0);
       })
       .finally(() => {
         if (requestRef.current === requestId) setLoading(false);
@@ -128,13 +251,14 @@ export function VirtualAlbumScreen({
         PAGE_SIZE,
       );
       if (requestRef.current !== requestId) return;
+      let appendedFrom = 0;
       setAssets((current) => {
+        appendedFrom = current.length;
         const existing = new Set(current.map((item) => item.id));
-        return [
-          ...current,
-          ...page.assets.filter((item) => !existing.has(item.id)),
-        ];
+        const fresh = page.assets.filter((item) => !existing.has(item.id));
+        return [...current, ...fresh];
       });
+      setRevealBase(appendedFrom);
       setNextOffset(page.nextOffset);
       setHasNextPage(page.hasNextPage);
     } finally {
@@ -217,9 +341,7 @@ export function VirtualAlbumScreen({
       </Header>
 
       {loading ? (
-        <FooterLoader>
-          <ActivityIndicator color={colors.brandSoft} />
-        </FooterLoader>
+        <InitialSkeleton columns={columns} tileSize={tileSize} />
       ) : assets.length === 0 ? (
         <FooterLoader>
           <EmptyTitle>{t('virtualAlbum.emptyTitle')}</EmptyTitle>
@@ -231,7 +353,14 @@ export function VirtualAlbumScreen({
           key={`virtual-${columns}`}
           numColumns={columns}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <MediaTile asset={item} size={tileSize} />}
+          renderItem={({ item, index }) => (
+            <MediaTile
+              asset={item}
+              size={tileSize}
+              index={Math.max(0, index - revealBase)}
+              onOpen={() => setPreviewIndex(index)}
+            />
+          )}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
           columnWrapperStyle={{ gap: 3 }}
           ItemSeparatorComponent={GridGap}
@@ -240,13 +369,23 @@ export function VirtualAlbumScreen({
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
             loadingMore ? (
-              <FooterLoader>
-                <ActivityIndicator color={colors.brandSoft} size="small" />
-              </FooterLoader>
+              <MoreSkeleton columns={columns} tileSize={tileSize} />
             ) : undefined
           }
         />
       )}
+
+      <VirtualAlbumPreview
+        visible={previewIndex !== null}
+        assets={assets}
+        initialIndex={previewIndex ?? 0}
+        onClose={() => setPreviewIndex(null)}
+        onIndexChange={(index) => {
+          if (index >= assets.length - 8) {
+            void loadMore();
+          }
+        }}
+      />
     </Screen>
   );
 }

@@ -220,10 +220,6 @@ export const LoadingCaption = styled(Muted)`
   margin-top: ${({ theme }) => theme.spacing.md}px;
 `;
 
-export const CheckingCaption = styled(Muted)`
-  margin-top: ${({ theme }) => theme.spacing.md}px;
-`;
-
 export const ErrorRowInset = styled.View`
   padding-vertical: ${({ theme }) => theme.spacing.sm}px;
   align-items: center;

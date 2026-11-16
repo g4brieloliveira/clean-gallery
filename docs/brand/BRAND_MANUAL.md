@@ -120,12 +120,18 @@ Não:
 
 - Distorcer, inclinar ou alterar proporções.
 - Aplicar gradiente, glow ou sombra decorativa.
-- Trocar o fundo índigo por verde ou coral.
+- Trocar o fundo lilás da marca por verde ou coral.
 - Inserir texto dentro do app icon.
 - Substituir os cartões por lixeira ou vassoura.
 - Usar o símbolo sobre fotografia sem contraste suficiente.
 
-Fonte vetorial: `assets/brand/kleen-mark.svg`.
+Fonte vetorial canônica:
+- App icon (placa full-bleed): `assets/brand/kleen-mark.svg`
+- Símbolo sem placa (splash/loading): `assets/brand/kleen-mark-symbol.svg`
+- Componente RN: `src/components/KleenMark` (mesma geometria)
+- Regenerar PNGs: `python3 scripts/render-brand-assets.py`
+
+O app icon PNG é **quadrado full-bleed** (`#9088F0`); o sistema operacional aplica a máscara squircle. Não exportar cantos arredondados nem fundo branco ao redor da placa.
 
 ---
 
@@ -135,13 +141,13 @@ Fonte vetorial: `assets/brand/kleen-mark.svg`.
 
 | Token | Hex | Papel |
 |---|---:|---|
-| `ink` | `#0D0D12` | Fundo profundo / splash |
+| `ink` | `#0D0D12` | Fundo profundo |
 | `background` | `#121219` | Fundo principal |
 | `surface` | `#1B1B24` | Superfícies e controles neutros |
 | `surfaceRaised` | `#252532` | Superfícies elevadas |
-| `brandPrimary` | `#5142C7` | CTAs, foco e marca |
-| `brandPressed` | `#4335AA` | Estado pressionado |
-| `brandSoft` | `#B9B2FF` | Detalhes e ilustração |
+| `brandPrimary` | `#9088F0` | CTAs, splash, foco e marca |
+| `brandPressed` | `#706ABB` | Estado pressionado |
+| `brandSoft` | `#BFBAF6` | Detalhes e ilustração |
 | `textPrimary` | `#F8F7FC` | Texto principal |
 | `textSecondary` | `#AAA8B6` | Texto secundário |
 | `textMuted` | `#777583` | Legendas e metadados |
@@ -284,7 +290,7 @@ Máximo de 3–4 etapas:
 
 ### Paywall futuro
 
-- Usar a marca índigo.
+- Usar a marca lilás (`brandPrimary`).
 - Não usar urgência falsa.
 - Preço e período vindos da loja.
 - O paywall nunca interrompe uma exclusão já selecionada.

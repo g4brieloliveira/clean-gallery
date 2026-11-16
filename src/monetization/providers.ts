@@ -1,4 +1,15 @@
+import { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import { isRevenueCatNativeUiAvailable } from './environment';
 import type { PremiumStatus } from './policy';
+import {
+  configureRevenueCat,
+  fetchPremiumStatus,
+  paywallGrantedAccess,
+  paywallWasCancelled,
+  presentKleenCustomerCenter,
+  presentKleenPaywall,
+  restorePremiumPurchases,
+} from './revenueCat';
 
 export type RewardedAdResult = 'completed' | 'cancelled' | 'unavailable' | 'failed';
 
@@ -7,11 +18,39 @@ export interface RewardedAdProvider {
   show(): Promise<RewardedAdResult>;
 }
 
+export type PremiumPurchaseResult =
+  | 'active'
+  | 'cancelled'
+  | 'unavailable'
+  | 'failed'
+  /** Native paywall cannot run (Expo Go) — UI should show in-app fallback. */
+  | 'fallback';
+
+export type PremiumRestoreResult =
+  | 'active'
+  | 'inactive'
+  | 'unavailable'
+  | 'failed';
+
 export interface PremiumProvider {
   readonly mode: 'fake' | 'native';
+  /** True when RevenueCat native paywall UI can be presented. */
+  canPresentNativePaywall(): boolean;
+  /** Configure SDK once (no-op for fake). */
+  configure(): Promise<void>;
   getStatus(): Promise<PremiumStatus>;
-  purchase(): Promise<'active' | 'cancelled' | 'unavailable' | 'failed'>;
-  restore(): Promise<'active' | 'inactive' | 'unavailable' | 'failed'>;
+  /** Presents RevenueCat Paywall when native UI is available. */
+  purchase(): Promise<PremiumPurchaseResult>;
+  /**
+   * Local-only Premium unlock for Expo Go / Preview API testing.
+   * Does not charge and does not talk to the store.
+   */
+  activatePreviewPremium(): Promise<'active'>;
+  restore(): Promise<PremiumRestoreResult>;
+  /** Opens Customer Center when supported. */
+  presentCustomerCenter(options?: {
+    readonly onStatus?: (status: PremiumStatus) => void;
+  }): Promise<'opened' | 'unavailable' | 'failed'>;
 }
 
 export interface RewardedBonusResult {
@@ -35,8 +74,7 @@ export async function requestRewardedReviewBonus(
 }
 
 /**
- * Pre-Apple implementation. It exercises the full reward flow without a native
- * ads SDK. Replace this exported adapter after the native build is available.
+ * Pre-Apple ads adapter. Replace after a native ads SDK is available.
  */
 class FakeRewardedAdProvider implements RewardedAdProvider {
   readonly mode = 'fake' as const;
@@ -48,25 +86,86 @@ class FakeRewardedAdProvider implements RewardedAdProvider {
 }
 
 /**
- * Purchases remain unavailable until App Store Connect + RevenueCat exist.
- * The store can still be set to `active` in unit tests to prove Pro bypasses
- * every free-limit/ad gate.
+ * RevenueCat-backed Premium. Native paywalls need a development build.
+ * Expo Go falls back to an in-app preview modal.
  */
-class FakePremiumProvider implements PremiumProvider {
-  readonly mode = 'fake' as const;
+class RevenueCatPremiumProvider implements PremiumProvider {
+  readonly mode = 'native' as const;
+
+  canPresentNativePaywall(): boolean {
+    return isRevenueCatNativeUiAvailable();
+  }
+
+  async configure(): Promise<void> {
+    await configureRevenueCat();
+  }
 
   async getStatus(): Promise<PremiumStatus> {
-    return 'inactive';
+    await this.configure();
+    return fetchPremiumStatus();
   }
 
-  async purchase(): Promise<'unavailable'> {
-    return 'unavailable';
+  async purchase(): Promise<PremiumPurchaseResult> {
+    try {
+      await this.configure();
+      if (!this.canPresentNativePaywall()) {
+        return 'fallback';
+      }
+      const { result, status, reason } = await presentKleenPaywall();
+      if (reason === 'preview_api') {
+        return 'fallback';
+      }
+      if (status === 'active' || paywallGrantedAccess(result)) {
+        return 'active';
+      }
+      if (result === PAYWALL_RESULT.ERROR) {
+        return 'failed';
+      }
+      if (
+        paywallWasCancelled(result) ||
+        status === 'inactive' ||
+        status === 'unknown'
+      ) {
+        return 'cancelled';
+      }
+      return 'failed';
+    } catch (error) {
+      console.warn('[premiumProvider] purchase/paywall failed', error);
+      return 'failed';
+    }
   }
 
-  async restore(): Promise<'unavailable'> {
-    return 'unavailable';
+  async activatePreviewPremium(): Promise<'active'> {
+    await new Promise<void>((resolve) => setTimeout(resolve, 400));
+    return 'active';
+  }
+
+  async restore(): Promise<PremiumRestoreResult> {
+    try {
+      await this.configure();
+      const { status, errorCode } = await restorePremiumPurchases();
+      if (status === 'active') return 'active';
+      if (status === 'inactive') return 'inactive';
+      if (errorCode) return 'failed';
+      return 'failed';
+    } catch (error) {
+      console.warn('[premiumProvider] restore failed', error);
+      return 'failed';
+    }
+  }
+
+  async presentCustomerCenter(options?: {
+    readonly onStatus?: (status: PremiumStatus) => void;
+  }): Promise<'opened' | 'unavailable' | 'failed'> {
+    try {
+      await this.configure();
+      return await presentKleenCustomerCenter(options);
+    } catch (error) {
+      console.warn('[premiumProvider] customer center failed', error);
+      return 'failed';
+    }
   }
 }
 
 export const rewardedAdProvider: RewardedAdProvider = new FakeRewardedAdProvider();
-export const premiumProvider: PremiumProvider = new FakePremiumProvider();
+export const premiumProvider: PremiumProvider = new RevenueCatPremiumProvider();

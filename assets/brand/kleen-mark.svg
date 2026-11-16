@@ -1,6 +1,7 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Exact production version of the approved Canvas mark. -->
-  <rect width="1024" height="1024" rx="256" fill="#5142C7"/>
+  <!-- Canonical Kleen app icon. Full-bleed plate — OS applies the squircle mask. -->
+  <!-- Keep in sync with src/components/KleenMark/geometry.ts -->
+  <rect width="1024" height="1024" fill="#9088F0"/>
   <rect
     x="205"
     y="184"
@@ -16,7 +17,7 @@
     width="492"
     height="430"
     rx="123"
-    fill="#5142C7"
+    fill="#9088F0"
     stroke="#F8F7FC"
     stroke-width="32"
     transform="rotate(7 645 676)"

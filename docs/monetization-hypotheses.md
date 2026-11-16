@@ -4,16 +4,11 @@ Status: **hipóteses para teste**, não preços ou limites finais.
 
 ## Decisão de implementação
 
-Antes de pagar o Apple Developer Program, o app usa adapters `fake` para
-Premium e rewarded ads. Isso permite testar domínio, persistência, gate e UX no
-Expo Go. Nenhuma compra é cobrada e nenhum anúncio real é servido.
+Premium já usa RevenueCat (`react-native-purchases` + Paywalls UI) com a chave
+de Test Store. Compras reais exigem development build + App Store Connect /
+Sandbox. Rewarded ads continuam no adapter `fake` até o SDK nativo.
 
-Depois da conta Apple:
-
-1. substituir `PremiumProvider` por RevenueCat;
-2. substituir `RewardedAdProvider` pelo SDK escolhido;
-3. manter as mesmas interfaces e suíte;
-4. validar tudo em build nativo/Sandbox antes de disponibilizar.
+Checklist RevenueCat: ver `docs/REVENUECAT.md`.
 
 ## Hipóteses iniciais
 

@@ -1,16 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import { ThemeProvider } from 'styled-components/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { KleenBrand } from './src/components/KleenBrand';
+import { BrandSplash } from './src/components/BrandSplash';
 import { premiumProvider } from './src/monetization/providers';
+import { addPremiumStatusListener } from './src/monetization/revenueCat';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { filterExistingAssetIds } from './src/services/mediaLibraryService';
 import { useGalleryStore } from './src/store/galleryStore';
 import { useMonetizationStore } from './src/store/monetizationStore';
 import { appTheme } from './src/theme/appTheme';
-import { colors } from './src/theme/tokens';
 import './src/i18n';
 
 function HydrationGate({ children }: { readonly children: React.ReactNode }): React.JSX.Element {
@@ -27,7 +26,6 @@ function HydrationGate({ children }: { readonly children: React.ReactNode }): Re
       const ids = [...new Set([...keptAssetIds, ...toDeleteIds])];
       if (ids.length === 0) return;
       try {
-        // Batch existence checks so large keep lists do not block the first frame.
         const existing = await filterExistingAssetIds(ids);
         if (cancelled) return;
         reconcileKeptAssetIds(existing);
@@ -44,32 +42,35 @@ function HydrationGate({ children }: { readonly children: React.ReactNode }): Re
   useEffect(() => {
     if (!monetizationHydrated) return;
     let cancelled = false;
+    let removeListener: (() => void) | undefined;
+
     void (async () => {
-      const status = await premiumProvider.getStatus();
-      if (!cancelled) {
-        useMonetizationStore.getState().setPremiumStatus(status);
+      try {
+        await premiumProvider.configure();
+        if (cancelled) return;
+        removeListener = addPremiumStatusListener((status) => {
+          useMonetizationStore.getState().setPremiumStatus(status);
+        });
+        const status = await premiumProvider.getStatus();
+        if (!cancelled) {
+          useMonetizationStore.getState().setPremiumStatus(status);
+        }
+      } catch (error) {
+        console.warn('[App] RevenueCat bootstrap failed', error);
+        if (!cancelled) {
+          useMonetizationStore.getState().setPremiumStatus('unknown');
+        }
       }
     })();
+
     return () => {
       cancelled = true;
+      removeListener?.();
     };
   }, [monetizationHydrated]);
 
   if (!hasHydrated) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.backgroundPure,
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
-        }}
-      >
-        <KleenBrand />
-        <ActivityIndicator color={colors.brandSoft} />
-      </View>
-    );
+    return <BrandSplash />;
   }
 
   return <>{children}</>;

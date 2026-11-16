@@ -4,7 +4,7 @@ Data da revisão estática: 2026-11-15
 
 ## Verificado
 
-- [x] Paleta usa índigo para marca, verde somente para **Manter** e coral somente para **Remover**.
+- [x] Paleta usa lilás para marca, verde somente para **Manter** e coral somente para **Remover**.
 - [x] Botões de ação principais medem 60 × 60 pt; ações de cabeçalho medem 44 × 44 pt.
 - [x] Swipe não é o único caminho: os botões × e ✓ executam as mesmas decisões.
 - [x] Ações de cabeçalho e revisão têm `accessibilityRole` e `accessibilityLabel`.

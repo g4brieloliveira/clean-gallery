@@ -5,10 +5,11 @@ export const BrandRow = styled.View`
   align-items: center;
 `;
 
-export const BrandIcon = styled.Image<{ $compact: boolean }>`
+export const BrandMarkFrame = styled.View<{ $compact: boolean }>`
   width: ${({ $compact }) => ($compact ? 28 : 36)}px;
   height: ${({ $compact }) => ($compact ? 28 : 36)}px;
   border-radius: ${({ $compact }) => ($compact ? 7 : 9)}px;
+  overflow: hidden;
 `;
 
 export const BrandWordmark = styled.Text<{ $compact: boolean }>`

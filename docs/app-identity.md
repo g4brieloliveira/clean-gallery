@@ -12,7 +12,7 @@ Decisão registrada em 15 de novembro de 2026 (CG-8).
 | Android package | `com.g4brieloliveira.kleen` |
 | SKU App Store Connect | `kleen-ios` |
 | Proprietário | Gabriel Oliveira |
-| Apple Team ID | A confirmar após CG-12 |
+| Apple Team ID | Confirmar no developer.apple.com após membership ativa |
 | Versão inicial | `1.0.0` |
 
 ## Regras

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useState } from 'react';
 import { Linking, Modal, Share } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { PremiumPreviewModal } from '../../components/PremiumPreviewModal';
 import type { SettingsScreenProps } from '../../navigation/types';
 import {
   FREE_DAILY_REVIEWS,
@@ -84,6 +85,9 @@ export function SettingsScreen({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [privacyVisible, setPrivacyVisible] = useState(false);
+  const [premiumOpen, setPremiumOpen] = useState(false);
+  const [premiumMessage, setPremiumMessage] = useState<string | null>(null);
+  const previewPaywall = !premiumProvider.canPresentNativePaywall();
 
   const restorePurchase = useCallback(async () => {
     setLoading(true);
@@ -96,6 +100,8 @@ export function SettingsScreen({
       } else if (result === 'inactive') {
         setPremiumStatus('inactive');
         setMessage(t('premium.noActive'));
+      } else if (result === 'failed') {
+        setMessage(t('premium.restoreFailed'));
       } else {
         setMessage(t('settings.restoreUnavailable'));
       }
@@ -103,6 +109,79 @@ export function SettingsScreen({
       setLoading(false);
     }
   }, [setPremiumStatus, t]);
+
+  const openPremiumPaywall = useCallback(async () => {
+    setMessage(null);
+    setPremiumMessage(null);
+    if (previewPaywall) {
+      setPremiumOpen(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await premiumProvider.purchase();
+      if (result === 'active') {
+        setPremiumStatus('active');
+        setMessage(t('premium.active'));
+      } else if (result === 'fallback') {
+        setPremiumOpen(true);
+      } else if (result === 'failed') {
+        setMessage(t('premium.purchaseFailed'));
+      } else if (result !== 'cancelled') {
+        setMessage(t('premium.purchaseUnavailable'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [previewPaywall, setPremiumStatus, t]);
+
+  const onPurchasePremium = useCallback(async () => {
+    setLoading(true);
+    setPremiumMessage(null);
+    try {
+      if (previewPaywall) {
+        await premiumProvider.activatePreviewPremium();
+        setPremiumStatus('active');
+        setPremiumOpen(false);
+        setMessage(t('premium.active'));
+        return;
+      }
+      const result = await premiumProvider.purchase();
+      if (result === 'active') {
+        setPremiumStatus('active');
+        setPremiumOpen(false);
+        setMessage(t('premium.active'));
+        return;
+      }
+      if (result === 'cancelled') return;
+      setPremiumMessage(
+        result === 'failed'
+          ? t('premium.purchaseFailed')
+          : t('premium.purchaseUnavailable'),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [previewPaywall, setPremiumStatus, t]);
+
+  const openCustomerCenter = useCallback(async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const result = await premiumProvider.presentCustomerCenter({
+        onStatus: (status) => {
+          setPremiumStatus(status);
+        },
+      });
+      if (result === 'failed' || result === 'unavailable') {
+        await Linking.openURL(SUBSCRIPTIONS_URL);
+      }
+    } catch {
+      await Linking.openURL(SUBSCRIPTIONS_URL);
+    } finally {
+      setLoading(false);
+    }
+  }, [setPremiumStatus]);
 
   const shareDiagnostics = useCallback(async () => {
     const log = await exportLocalErrorLog();
@@ -164,6 +243,14 @@ export function SettingsScreen({
               </InfoText>
             ) : null}
           </CardBody>
+          {!isPremium ? (
+            <SettingsRow
+              icon="sparkles-outline"
+              label={t('settings.upgrade')}
+              meta={loading ? t('settings.checking') : undefined}
+              onPress={() => void openPremiumPaywall()}
+            />
+          ) : null}
           <SettingsRow
             icon="refresh-outline"
             label={t('settings.restore')}
@@ -173,7 +260,7 @@ export function SettingsScreen({
           <SettingsRow
             icon="card-outline"
             label={t('settings.manage')}
-            onPress={() => void Linking.openURL(SUBSCRIPTIONS_URL)}
+            onPress={() => void openCustomerCenter()}
           />
         </Card>
 
@@ -223,6 +310,16 @@ export function SettingsScreen({
         {message ? <StatusMessage accessibilityRole="text">{message}</StatusMessage> : null}
         <InfoText>{t('settings.localProcessing')}</InfoText>
       </Scroll>
+
+      <PremiumPreviewModal
+        visible={premiumOpen}
+        loading={loading}
+        message={premiumMessage}
+        testMode={previewPaywall}
+        onClose={() => setPremiumOpen(false)}
+        onPurchase={() => void onPurchasePremium()}
+        onRestore={() => void restorePurchase()}
+      />
 
       <Modal
         visible={privacyVisible}

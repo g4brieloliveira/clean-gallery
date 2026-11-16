@@ -1,0 +1,33 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Same geometry as kleen-mark.svg, without the full-bleed plate. -->
+  <!-- Keep in sync with assets/brand/kleen-mark.svg and src/components/KleenMark/geometry.ts -->
+  <rect
+    x="205"
+    y="184"
+    width="532"
+    height="471"
+    rx="123"
+    fill="#F8F7FC"
+    transform="rotate(-7 471 420)"
+  />
+  <rect
+    x="399"
+    y="461"
+    width="492"
+    height="430"
+    rx="123"
+    fill="#9088F0"
+    stroke="#F8F7FC"
+    stroke-width="32"
+    transform="rotate(7 645 676)"
+  />
+  <rect
+    x="440"
+    y="205"
+    width="123"
+    height="635"
+    rx="62"
+    fill="#F8F7FC"
+    transform="rotate(-42 502 522)"
+  />
+</svg>
