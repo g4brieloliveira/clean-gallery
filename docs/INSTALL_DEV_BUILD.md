@@ -27,15 +27,36 @@ eas device:list --apple-team-id 8995YSQ8Y3
 
 Deve aparecer o iPhone (não só o MacBook).
 
-## Passo B — Gerar de novo o development build
+## Passo B — Incluir o iPhone no perfil (obrigatório)
 
-O IPA antigo **não serve** — ele foi assinado sem o seu iPhone.
+Registrar no EAS **não basta**: o IPA precisa ser assinado de novo com o UDID.
+
+### Opção B1 — Re-assinar o último build (mais rápido)
 
 ```bash
-npm run eas:dev
+eas build:resign --id <BUILD_ID> -p ios -e development --wait
 ```
 
-Quando perguntar se quer usar devices novos / regenerar perfil → **Yes**.
+Use o ID do build mais recente (`eas build:list --platform ios --limit 1`).
+
+### Opção B2 — Build novo forçando refresh do perfil
+
+```bash
+eas build --profile development --platform ios --refresh-ad-hoc-provisioning-profile --wait
+```
+
+Quando perguntar quais devices → **marque o iPhone** (checkbox).
+
+### Membership Apple nova
+
+Na primeira vez que um device entra no time, a Apple pode levar **horas** para processar.
+Se o resign/build falhar ou o install continuar com “integridade”, espere e tente de novo no dia seguinte,
+ou pule ad hoc e use **TestFlight** (não precisa de UDID):
+
+```bash
+npm run eas:prod
+npm run eas:submit
+```
 
 ## Passo C — Instalar
 
