@@ -39,7 +39,7 @@ e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
 
 ## Fluxo
 
-1. **Onboarding** — na primeira abertura: permissão, gestos, processamento local e remoção no iOS.
+1. **Onboarding** — na primeira abertura: permissão, gestos, processamento local, remoção no iOS e suporte seguro.
 2. **Álbuns** — escolha **Embaralhado** (lotes misturados, não amostragem global) ou um álbum; o total exibido é de **mídias únicas** na biblioteca. Acesso limitado à fototeca mostra um banner com atalho para Ajustes.
 3. **Swipe** — arraste à esquerda para marcar remoção; à direita para manter. Há botões na barra como alternativa aos gestos (acessibilidade). Vídeos usam controles nativos (play/pause).
 4. **Confirmação** — toque na faixa de remoção ou conclua a fila; o modal explica **Apagados Recentemente**. O resumo da sessão usa **contagens**, sem GB inventados.
@@ -57,6 +57,14 @@ O domínio de monetização já pode ser testado sem cobrança real:
 Providers nativos entram somente depois da conta Apple e devem preservar as
 interfaces em `src/monetization/providers.ts`. Regras e hipóteses:
 [`docs/monetization-hypotheses.md`](docs/monetization-hypotheses.md).
+
+## Configurações e suporte
+
+A tela Configurações informa plano e quota, explica o modelo sem login, oferece
+restauração/gerenciamento de assinatura e permite compartilhar um diagnóstico
+local sem fotos, vídeos ou URIs da galeria. Também é possível reiniciar o
+onboarding. Consulte a [política de privacidade](PRIVACY.md) e o
+[canal de suporte](SUPPORT.md).
 
 ## Desempenho e limites
 
@@ -83,4 +91,6 @@ Constantes em `src/services/mediaLibraryService.ts`:
 - Checklist de gates: `docs/release-checklist.md`
 - Permissões: `docs/permissions.md`
 - Hipóteses de monetização: `docs/monetization-hypotheses.md`
+- Privacidade: `PRIVACY.md`
+- Suporte: `SUPPORT.md`
 - Tooling: `docs/tooling.md`
