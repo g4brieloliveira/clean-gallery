@@ -6,10 +6,12 @@ Nome ASC: **Kleen: Swipe Photo Cleaner**
 
 ## Pré-requisitos
 
-1. Apple Developer Program ativo
-2. App criado no [App Store Connect](https://appstoreconnect.apple.com) (ver [`APP_STORE_CONNECT.md`](APP_STORE_CONNECT.md))
-3. Produtos IAP + RevenueCat com chave `appl_…` (ver [`REVENUECAT.md`](REVENUECAT.md))
-4. EAS logado: `eas whoami`
+1. Apple Developer Program **ativo** (membership pode levar algumas horas após o pagamento)
+2. Apple ID do programa vinculado ao EAS na primeira build (`eas build` → Log in to Apple)
+3. Confirme: `eas device:list` deixa de falhar com “No Apple teams found”
+4. App criado no [App Store Connect](https://appstoreconnect.apple.com) (ver [`APP_STORE_CONNECT.md`](APP_STORE_CONNECT.md))
+5. Produtos IAP + RevenueCat com chave `appl_…` (ver [`REVENUECAT.md`](REVENUECAT.md))
+6. EAS logado: `eas whoami`
 
 ## Comandos
 

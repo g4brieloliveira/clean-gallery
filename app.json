@@ -12,7 +12,6 @@
     },
     "ios": {
       "bundleIdentifier": "com.g4brieloliveira.kleen",
-      "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "O Kleen precisa acessar suas fotos e vídeos para você revisar e organizar sua biblioteca.",
