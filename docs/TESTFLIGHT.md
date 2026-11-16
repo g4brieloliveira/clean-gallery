@@ -50,30 +50,22 @@ Sem esse secret, o app usa a chave `test_` de fallback (só Test Store / Preview
 - `eas.json` production usa `autoIncrement` remoto para `buildNumber`.
 - Nenhum segredo Apple/RevenueCat deve ser commitado.
 
-## Bloqueio atual (2026-11-16)
+## Team Apple
 
-`eas device:list` / credentials retornam **No Apple teams found** para a conta Expo `g4brieloliveira`.
+- Team: Gabriel Augusto de Oliveira Pinto (Individual)
+- Team ID: `8995YSQ8Y3`
 
-Isso normalmente significa:
+## Erro “integridade não pôde ser verificada”
 
-1. Membership Apple Developer ainda processando após o pagamento, ou
-2. O Apple ID do programa ainda não foi vinculado no fluxo interativo do EAS.
+Build `internal` só instala em devices **registrados antes** do build.  
+Guia completo: [`INSTALL_DEV_BUILD.md`](INSTALL_DEV_BUILD.md).
 
-### Desbloqueio
-
-1. Confirme em https://developer.apple.com/account que o programa está **Active** e anote o Team ID
-2. No Terminal (fora do agente):
+Resumo:
 
 ```bash
-cd ~/www/clean-gallery
-npm run eas:dev
-# → Yes, log in to Apple account → Apple ID do Developer Program → 2FA
+eas device:create --apple-team-id 8995YSQ8Y3   # abra o link no iPhone
+eas device:list --apple-team-id 8995YSQ8Y3     # confirme o iPhone
+npm run eas:dev                                # NOVO build (o antigo não serve)
 ```
 
-3. Com a chave `appl_…` do RevenueCat:
-
-```bash
-./scripts/set-revenuecat-ios-key.sh appl_XXXX
-```
-
-4. Depois: `npm run eas:prod` e `npm run eas:submit`
+Instale pelo QR do **novo** build; confie no certificado em Ajustes se pedir.
