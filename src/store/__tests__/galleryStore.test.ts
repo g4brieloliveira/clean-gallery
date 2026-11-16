@@ -215,4 +215,10 @@ describe('galleryStore', () => {
     expect(useGalleryStore.getState().keptAssetIds).toEqual(['live']);
     expect(useGalleryStore.getState().toDeleteIds).toEqual(['pending-live']);
   });
+
+  it('allows the onboarding to be shown again from Settings (CG-112)', () => {
+    expect(useGalleryStore.getState().hasSeenOnboarding).toBe(true);
+    useGalleryStore.getState().resetOnboarding();
+    expect(useGalleryStore.getState().hasSeenOnboarding).toBe(false);
+  });
 });

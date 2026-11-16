@@ -481,6 +481,13 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
             <Title>Que tal uma limpeza rápida?</Title>
             <Subtitle>Escolha uma coleção e revise no seu ritmo.</Subtitle>
           </HeaderTextBlock>
+          <IconButton
+            onPress={() => navigation.navigate('Settings')}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir configurações"
+          >
+            <Ionicons name="settings-outline" size={19} color={colors.brandSoft} />
+          </IconButton>
         </HeaderRow>
 
         <SearchWrap>

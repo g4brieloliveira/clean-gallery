@@ -19,6 +19,18 @@ function redactMessage(message: string): string {
     .slice(0, 280);
 }
 
+function redactContext(
+  context: LocalErrorEntry['context'],
+): LocalErrorEntry['context'] {
+  if (!context) return undefined;
+  return Object.fromEntries(
+    Object.entries(context).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? redactMessage(value) : value,
+    ]),
+  );
+}
+
 async function readEntries(): Promise<LocalErrorEntry[]> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -39,7 +51,7 @@ export async function logLocalError(
     at: new Date().toISOString(),
     code,
     message: redactMessage(message),
-    ...(context ? { context } : {}),
+    ...(context ? { context: redactContext(context) } : {}),
   };
   try {
     const prev = await readEntries();
