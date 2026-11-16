@@ -11,6 +11,7 @@ import { useGalleryStore } from './src/store/galleryStore';
 import { useMonetizationStore } from './src/store/monetizationStore';
 import { appTheme } from './src/theme/appTheme';
 import { colors } from './src/theme/tokens';
+import './src/i18n';
 
 function HydrationGate({ children }: { readonly children: React.ReactNode }): React.JSX.Element {
   const galleryHydrated = useGalleryStore((s) => s.hasHydrated);

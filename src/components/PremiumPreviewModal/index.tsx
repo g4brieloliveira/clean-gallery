@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Modal } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/tokens';
 import {
   Backdrop,
@@ -30,6 +31,7 @@ interface PremiumPreviewModalProps {
 export function PremiumPreviewModal(
   props: PremiumPreviewModalProps,
 ): React.JSX.Element {
+  const { t } = useTranslation();
   const {
     visible,
     loading,
@@ -53,39 +55,34 @@ export function PremiumPreviewModal(
             onPress={onClose}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Fechar Premium"
+            accessibilityLabel={t('premium.close')}
           >
             <Ionicons name="close" size={22} color={colors.textSecondary} />
           </CloseButton>
           <Ionicons name="sparkles-outline" size={34} color={colors.brandSoft} />
-          <Title accessibilityRole="header">Kleen Premium</Title>
-          <Body>
-            A oferta final será validada no beta. Esta prévia testa o gate sem
-            cobrar ou criar uma assinatura real.
-          </Body>
+          <Title accessibilityRole="header">{t('premium.title')}</Title>
+          <Body>{t('premium.body')}</Body>
           <Feature>
             <Ionicons name="infinite-outline" size={20} color={colors.keep} />
-            <FeatureLabel>Revisões sem limite diário</FeatureLabel>
+            <FeatureLabel>{t('premium.unlimited')}</FeatureLabel>
           </Feature>
           <Feature>
             <Ionicons name="ban-outline" size={20} color={colors.keep} />
-            <FeatureLabel>Sem gate de anúncio recompensado</FeatureLabel>
+            <FeatureLabel>{t('premium.noAds')}</FeatureLabel>
           </Feature>
           <PrimaryButton
             onPress={onPurchase}
             disabled={loading}
             accessibilityRole="button"
             accessibilityLabel={
-              testMode
-                ? 'Testar compra Premium indisponível neste build'
-                : 'Assinar Kleen Premium'
+              testMode ? t('premium.purchaseTest') : t('premium.purchase')
             }
           >
             {loading ? (
               <ActivityIndicator color={colors.textPrimary} />
             ) : (
               <PrimaryLabel>
-                {testMode ? 'Testar fluxo de compra' : 'Assinar Premium'}
+                {testMode ? t('premium.purchaseTest') : t('premium.purchase')}
               </PrimaryLabel>
             )}
           </PrimaryButton>
@@ -93,15 +90,15 @@ export function PremiumPreviewModal(
             onPress={onRestore}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Restaurar compra Premium"
+            accessibilityLabel={t('premium.restore')}
           >
-            <RestoreLabel>Restaurar compra</RestoreLabel>
+            <RestoreLabel>{t('premium.restore')}</RestoreLabel>
           </RestoreButton>
           <Footnote>
             {message ??
               (testMode
-                ? 'Modo de teste: sem cobrança. O preço virá da App Store no build nativo.'
-                : 'Preço, período e renovação serão exibidos pela oferta da App Store.')}
+                ? t('premium.testNote')
+                : t('premium.priceNote'))}
           </Footnote>
         </Panel>
       </Backdrop>

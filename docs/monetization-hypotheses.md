@@ -19,12 +19,12 @@ Depois da conta Apple:
 
 | Item | Hipótese |
 |---|---|
-| Limite gratuito | 100 decisões líquidas por dia |
+| Limite gratuito | 50 decisões líquidas por dia |
 | O que consome | `keep` ou `delete` confirmado no swipe |
 | Undo | devolve 1 revisão (não houve progresso líquido) |
 | Skip/falha/defer | não consome |
 | Rewarded ad | +25 revisões após callback `completed` |
-| Teto de ads | 2 por dia (+50 no máximo) |
+| Teto de ads | Sem teto diário; cada conclusão libera +25 |
 | Pro | revisões sem limite; não mostra gate de anúncio |
 | Delete pendente | confirmação/remoção permanece acessível mesmo sem quota |
 
@@ -52,6 +52,9 @@ Depois da conta Apple:
 
 O limite bloqueia apenas novas decisões de review. Ele **não bloqueia**:
 
+- abrir e navegar pelos álbuns virtuais “Aprovadas” e “Para remover”;
+- visualizar esses álbuns em grade paginada;
+- reclassificar itens dentro dos álbuns virtuais;
 - abrir “Para remover”;
 - revisar o conjunto pendente;
 - abrir a confirmação nativa;

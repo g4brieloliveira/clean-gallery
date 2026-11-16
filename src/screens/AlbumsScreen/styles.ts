@@ -75,10 +75,19 @@ export const LimitedAccessBody = styled.Text`
   margin-top: ${({ theme }) => theme.spacing.xs}px;
 `;
 
-export const SearchWrap = styled.View`
+export const SearchRow = styled.View`
+  position: relative;
+  z-index: 4;
   margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
   margin-bottom: ${({ theme }) => theme.spacing.sm}px;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const SearchWrap = styled.View`
+  flex: 1;
   height: 52px;
+  margin-right: ${({ theme }) => theme.spacing.sm}px;
   border-radius: 26px;
   background-color: ${({ theme }) => theme.colors.surface};
   border-width: 1px;
@@ -102,41 +111,6 @@ export const IconButton = styled.Pressable`
   align-items: center;
   justify-content: center;
   background-color: ${({ theme }) => theme.colors.surfaceElevated};
-`;
-
-export const Toolbar = styled.View`
-  margin-horizontal: ${({ theme }) => theme.spacing.xl}px;
-  margin-bottom: ${({ theme }) => theme.spacing.sm}px;
-  flex-direction: row;
-  align-items: center;
-`;
-
-export const ChipsScroll = styled.ScrollView`
-  flex-grow: 0;
-  max-width: 63%;
-`;
-
-export const ChipsRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
-export const Chip = styled.Pressable<{ $active: boolean }>`
-  padding-vertical: ${({ theme }) => theme.spacing.sm}px;
-  padding-horizontal: ${({ theme }) => theme.spacing.md}px;
-  border-radius: 999px;
-  background-color: ${({ theme, $active }) =>
-    $active ? theme.colors.brandPrimary : theme.colors.surface};
-  border-width: 1px;
-  border-color: ${({ theme, $active }) =>
-    $active ? theme.colors.brandPrimary : theme.colors.borderNeutral};
-  margin-right: ${({ theme }) => theme.spacing.sm}px;
-`;
-
-export const ChipText = styled.Text<{ $active: boolean }>`
-  color: ${({ theme, $active }) => ($active ? theme.colors.textPrimary : theme.colors.textSecondary)};
-  font-weight: 600;
-  font-size: ${({ theme }) => theme.typography.caption}px;
 `;
 
 export const ToolbarRight = styled.View`

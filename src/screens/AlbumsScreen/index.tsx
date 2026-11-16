@@ -11,6 +11,7 @@ import {
   type AppStateStatus,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import type { AlbumListIconName } from '../../components/AlbumListItem/types';
 import { AlbumListItem } from '../../components/AlbumListItem';
 import { KleenBrand } from '../../components/KleenBrand';
@@ -27,13 +28,10 @@ import { useGalleryStore } from '../../store/galleryStore';
 import type { AlbumsScreenProps } from '../../navigation/types';
 import type { AlbumsPermissionPhase } from './types';
 import { colors } from '../../theme/tokens';
+import { i18n } from '../../i18n';
 import {
   Centered,
   CheckingCaption,
-  Chip,
-  ChipText,
-  ChipsRow,
-  ChipsScroll,
   Content,
   EmptyListCard,
   ErrorRowInset,
@@ -63,6 +61,7 @@ import {
   RandomTitle,
   Screen,
   SearchInput,
+  SearchRow,
   SearchWrap,
   SegmentButton,
   Segmented,
@@ -73,7 +72,6 @@ import {
   Subtitle,
   SummaryCard,
   SummaryText,
-  Toolbar,
   ToolbarRight,
   Title,
   VirtualAlbumCard,
@@ -98,8 +96,8 @@ function mapAlbumToIcon(album: AlbumOption): AlbumListIconName {
 function buildApprovedAlbumOption(keptCount: number): AlbumOption {
   return {
     id: 'approved',
-    title: 'Aprovadas',
-    subtitle: keptCount === 1 ? '1 mídia aprovada' : `${keptCount} mídias aprovadas`,
+    title: i18n.t('albums.approved'),
+    subtitle: i18n.t('albums.approvedSubtitle', { count: keptCount }),
     assetCount: keptCount,
     mode: 'kept',
     libraryAlbumId: null,
@@ -111,8 +109,8 @@ function buildApprovedAlbumOption(keptCount: number): AlbumOption {
 function buildPendingDeleteAlbumOption(pendingCount: number): AlbumOption {
   return {
     id: 'pending-delete',
-    title: 'Para remover',
-    subtitle: pendingCount === 1 ? '1 mídia selecionada' : `${pendingCount} mídias selecionadas`,
+    title: i18n.t('albums.pending'),
+    subtitle: i18n.t('albums.pendingSubtitle', { count: pendingCount }),
     assetCount: pendingCount,
     mode: 'pendingDelete',
     libraryAlbumId: null,
@@ -128,6 +126,7 @@ interface GridAlbumCardProps {
 }
 
 function GridAlbumCard({ item, thumbHeight, onPress }: GridAlbumCardProps): React.JSX.Element {
+  const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
 
   useEffect(() => {
@@ -152,7 +151,7 @@ function GridAlbumCard({ item, thumbHeight, onPress }: GridAlbumCardProps): Reac
         <GridMeta>
           <GridTitle numberOfLines={1}>{item.title}</GridTitle>
           <GridSubtitle numberOfLines={1}>
-            {item.assetCount} mídia{item.assetCount === 1 ? '' : 's'}
+            {t('common.media', { count: item.assetCount })}
           </GridSubtitle>
         </GridMeta>
       </GridCard>
@@ -161,7 +160,7 @@ function GridAlbumCard({ item, thumbHeight, onPress }: GridAlbumCardProps): Reac
 }
 
 export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Element {
-  type AlbumFilterMode = 'all' | 'withMedia' | 'large';
+  const { t, i18n: activeI18n } = useTranslation();
   type SortMode = 'name' | 'countDesc' | 'countAsc';
   type ViewMode = 'list' | 'grid';
 
@@ -171,7 +170,6 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
   const completeOnboarding = useGalleryStore((s) => s.completeOnboarding);
   const keptAssetIds = useGalleryStore((s) => s.keptAssetIds);
   const toDeleteIds = useGalleryStore((s) => s.toDeleteIds);
-  const validatedAlbumIds = useGalleryStore((s) => s.validatedAlbumIds);
 
   const [permissionPhase, setPermissionPhase] = useState<AlbumsPermissionPhase>('checking');
   const [accessLimited, setAccessLimited] = useState(false);
@@ -181,7 +179,6 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
-  const [filterMode, setFilterMode] = useState<AlbumFilterMode>('all');
   const [sortMode, setSortMode] = useState<SortMode>('countDesc');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
@@ -232,7 +229,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
       })();
     } catch (e) {
       if (loadRequestRef.current !== requestId) return;
-      const msg = e instanceof Error ? e.message : 'Falha ao carregar álbuns.';
+      const msg = e instanceof Error ? e.message : t('albums.loadingError');
       setErrorMessage(msg);
       setPermissionPhase('error');
     } finally {
@@ -240,7 +237,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
         setLoadingAlbums(false);
       }
     }
-  }, []);
+  }, [t]);
 
   const applyPermissionAndLoad = useCallback(
     async (mode: 'request' | 'snapshot'): Promise<void> => {
@@ -263,12 +260,12 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
           setPermissionPhase('limited');
         }
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Falha ao verificar permissões da galeria.';
+        const msg = e instanceof Error ? e.message : t('albums.permissionError');
         setErrorMessage(msg);
         setPermissionPhase('error');
       }
     },
-    [loadAlbums],
+    [loadAlbums, t],
   );
 
   useEffect(() => {
@@ -317,6 +314,11 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
             : (albums.find((a) => a.id === id) ?? null);
       if (!album) return;
 
+      if (album.mode === 'kept' || album.mode === 'pendingDelete') {
+        navigation.navigate('VirtualAlbum', { album });
+        return;
+      }
+
       setLoadingAssets(true);
       setErrorMessage(null);
       try {
@@ -339,13 +341,21 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
         navigation.navigate('Swipe', { album });
         continueAlbumInBackground?.(sessionId);
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Não foi possível carregar as mídias.';
+        const msg = e instanceof Error ? e.message : t('albums.mediaError');
         setErrorMessage(msg);
       } finally {
         setLoadingAssets(false);
       }
     },
-    [albums, beginSession, hasHydrated, keptAssetIds, navigation, toDeleteIds],
+    [
+      albums,
+      beginSession,
+      hasHydrated,
+      keptAssetIds,
+      navigation,
+      t,
+      toDeleteIds,
+    ],
   );
 
   const { randomOption, approvedOption, pendingDeleteOption, processedAlbums, totalAlbums } =
@@ -354,22 +364,21 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     const approved = buildApprovedAlbumOption(keptAssetIds.length);
     const pendingDelete = buildPendingDeleteAlbumOption(toDeleteIds.length);
     const baseAlbums = albums.filter((item) => item.mode === 'album' && item.assetCount > 0);
-    const q = query.trim().toLowerCase();
+    const q = query.trim().toLocaleLowerCase(activeI18n.language);
 
     const searched = q.length
-      ? baseAlbums.filter((item) => item.title.toLowerCase().includes(q))
+      ? baseAlbums.filter((item) =>
+          item.title.toLocaleLowerCase(activeI18n.language).includes(q),
+        )
       : baseAlbums;
 
-    const filtered =
-      filterMode === 'large'
-        ? searched.filter((item) => item.assetCount >= 100)
-        : filterMode === 'withMedia'
-          ? searched.filter((item) => item.assetCount > 0 && !validatedAlbumIds.includes(item.id))
-          : searched;
-
-    const sorted = [...filtered];
+    const sorted = [...searched];
     if (sortMode === 'name') {
-      sorted.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+      sorted.sort((a, b) =>
+        a.title.localeCompare(b.title, activeI18n.language, {
+          sensitivity: 'base',
+        }),
+      );
     } else if (sortMode === 'countAsc') {
       sorted.sort((a, b) => a.assetCount - b.assetCount);
     } else {
@@ -385,12 +394,11 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     };
   }, [
     albums,
-    filterMode,
+    activeI18n.language,
     keptAssetIds.length,
     query,
     sortMode,
     toDeleteIds.length,
-    validatedAlbumIds,
   ]);
 
   const uniqueLibraryMediaTotal = randomOption?.assetCount ?? 0;
@@ -433,7 +441,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
       <Screen edges={['top', 'left', 'right']}>
         <Centered>
           <ActivityIndicator color="#fff" />
-          <CheckingCaption>Verificando permissões…</CheckingCaption>
+          <CheckingCaption>{t('albums.checkingPermission')}</CheckingCaption>
         </Centered>
       </Screen>
     );
@@ -443,16 +451,13 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     return (
       <Screen edges={['top', 'left', 'right']}>
         <Centered>
-          <Muted accessibilityRole="text">
-            Sem acesso à fototeca o Kleen não consegue listar suas mídias. Em Ajustes → Kleen → Fotos,
-            escolha “Todas as Fotos” ou “Fotos Selecionadas”.
-          </Muted>
+          <Muted accessibilityRole="text">{t('albums.deniedBody')}</Muted>
           <PrimaryButton
             onPress={onOpenSettings}
             accessibilityRole="button"
-            accessibilityLabel="Abrir ajustes do iPhone"
+            accessibilityLabel={t('albums.openSettings')}
           >
-            <PrimaryLabel>Abrir Ajustes</PrimaryLabel>
+            <PrimaryLabel>{t('albums.openSettings')}</PrimaryLabel>
           </PrimaryButton>
         </Centered>
       </Screen>
@@ -463,9 +468,9 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
     return (
       <Screen edges={['top', 'left', 'right']}>
         <Centered>
-          <Muted>{errorMessage ?? 'Erro desconhecido.'}</Muted>
+          <Muted>{errorMessage ?? t('albums.unknownError')}</Muted>
           <PrimaryButton onPress={() => void loadAlbums()}>
-            <PrimaryLabel>Tentar novamente</PrimaryLabel>
+            <PrimaryLabel>{t('common.retry')}</PrimaryLabel>
           </PrimaryButton>
         </Centered>
       </Screen>
@@ -478,68 +483,69 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
         <HeaderRow>
           <HeaderTextBlock>
             <KleenBrand compact />
-            <Title>Que tal uma limpeza rápida?</Title>
-            <Subtitle>Escolha uma coleção e revise no seu ritmo.</Subtitle>
+            <Title>{t('albums.greeting')}</Title>
+            <Subtitle>{t('albums.subtitle')}</Subtitle>
           </HeaderTextBlock>
           <IconButton
             onPress={() => navigation.navigate('Settings')}
             accessibilityRole="button"
-            accessibilityLabel="Abrir configurações"
+            accessibilityLabel={t('albums.openSettingsButton')}
           >
             <Ionicons name="settings-outline" size={19} color={colors.brandSoft} />
           </IconButton>
         </HeaderRow>
 
-        <SearchWrap>
-          <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
-          <SearchInput
-            value={queryInput}
-            onChangeText={setQueryInput}
-            placeholder="Buscar álbum"
-            placeholderTextColor={colors.textMuted}
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          {queryInput.length > 0 ? (
-            <IconButton onPress={() => setQueryInput('')}>
-              <Ionicons name="close" size={16} color={colors.textPrimary} />
-            </IconButton>
-          ) : null}
-        </SearchWrap>
-
-        <Toolbar>
-          <ChipsScroll horizontal showsHorizontalScrollIndicator={false}>
-            <ChipsRow>
-              <Chip $active={filterMode === 'all'} onPress={() => setFilterMode('all')}>
-                <ChipText $active={filterMode === 'all'}>Todos</ChipText>
-              </Chip>
-              <Chip $active={filterMode === 'withMedia'} onPress={() => setFilterMode('withMedia')}>
-                <ChipText $active={filterMode === 'withMedia'}>Com mídias</ChipText>
-              </Chip>
-              <Chip $active={filterMode === 'large'} onPress={() => setFilterMode('large')}>
-                <ChipText $active={filterMode === 'large'}>Grandes (100+)</ChipText>
-              </Chip>
-            </ChipsRow>
-          </ChipsScroll>
-
+        <SearchRow>
+          <SearchWrap>
+            <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
+            <SearchInput
+              value={queryInput}
+              onChangeText={setQueryInput}
+              placeholder={t('albums.search')}
+              placeholderTextColor={colors.textMuted}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+            {queryInput.length > 0 ? (
+              <IconButton
+                onPress={() => setQueryInput('')}
+                accessibilityRole="button"
+                accessibilityLabel={t('albums.clearSearch')}
+              >
+                <Ionicons name="close" size={16} color={colors.textPrimary} />
+              </IconButton>
+            ) : null}
+          </SearchWrap>
           <ToolbarRight>
             <IconButton
               onPress={() => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setSortMenuOpen((v) => !v);
               }}
+              accessibilityRole="button"
+              accessibilityLabel={t('albums.sort')}
             >
               <Ionicons name="swap-vertical-outline" size={18} color={colors.textPrimary} />
             </IconButton>
             <Segmented>
-              <SegmentButton $active={viewMode === 'list'} onPress={() => switchViewMode('list')}>
+              <SegmentButton
+                $active={viewMode === 'list'}
+                onPress={() => switchViewMode('list')}
+                accessibilityRole="button"
+                accessibilityLabel={t('albums.listView')}
+              >
                 <Ionicons
                   name="list"
                   size={16}
                   color={viewMode === 'list' ? colors.textPrimary : colors.textSecondary}
                 />
               </SegmentButton>
-              <SegmentButton $active={viewMode === 'grid'} onPress={() => switchViewMode('grid')}>
+              <SegmentButton
+                $active={viewMode === 'grid'}
+                onPress={() => switchViewMode('grid')}
+                accessibilityRole="button"
+                accessibilityLabel={t('albums.gridView')}
+              >
                 <Ionicons
                   name="grid"
                   size={16}
@@ -559,7 +565,9 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
                   setSortMenuOpen(false);
                 }}
               >
-                <SortOptionText $active={sortMode === 'name'}>Nome (A-Z)</SortOptionText>
+                <SortOptionText $active={sortMode === 'name'}>
+                  {t('albums.sortName')}
+                </SortOptionText>
               </SortOption>
               <SortOption
                 $active={sortMode === 'countDesc'}
@@ -568,7 +576,9 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
                   setSortMenuOpen(false);
                 }}
               >
-                <SortOptionText $active={sortMode === 'countDesc'}>Mais mídias</SortOptionText>
+                <SortOptionText $active={sortMode === 'countDesc'}>
+                  {t('albums.sortMost')}
+                </SortOptionText>
               </SortOption>
               <SortOption
                 $active={sortMode === 'countAsc'}
@@ -577,19 +587,36 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
                   setSortMenuOpen(false);
                 }}
               >
-                <SortOptionText $active={sortMode === 'countAsc'}>Menos mídias</SortOptionText>
+                <SortOptionText $active={sortMode === 'countAsc'}>
+                  {t('albums.sortLeast')}
+                </SortOptionText>
               </SortOption>
             </SortMenu>
           ) : null}
-        </Toolbar>
+        </SearchRow>
 
         <SummaryCard>
           <SummaryText>
-            {processedAlbums.length} de {totalAlbums} álbum{totalAlbums === 1 ? '' : 'ns'}
+            {t('albums.countSummary', {
+              shown: processedAlbums.length,
+              total: totalAlbums,
+              label: t('common.album', { count: totalAlbums }).replace(
+                `${totalAlbums} `,
+                '',
+              ),
+            })}
           </SummaryText>
-          <SummaryText accessibilityLabel={`${uniqueLibraryMediaTotal} mídias únicas na biblioteca`}>
-            {uniqueLibraryMediaTotal.toLocaleString('pt-BR')} mídia
-            {uniqueLibraryMediaTotal === 1 ? '' : 's'} únicas
+          <SummaryText
+            accessibilityLabel={t('albums.uniqueA11y', {
+              count: uniqueLibraryMediaTotal,
+            })}
+          >
+            {t('albums.unique', {
+              count: uniqueLibraryMediaTotal,
+              formattedCount: uniqueLibraryMediaTotal.toLocaleString(
+                activeI18n.language,
+              ),
+            })}
           </SummaryText>
         </SummaryCard>
 
@@ -597,13 +624,10 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
           <LimitedAccessBanner
             onPress={onOpenSettings}
             accessibilityRole="button"
-            accessibilityLabel="Acesso limitado à fototeca. Abrir Ajustes para escolher mais fotos."
+            accessibilityLabel={t('albums.limitedA11y')}
           >
-            <LimitedAccessTitle>Acesso limitado à fototeca</LimitedAccessTitle>
-            <LimitedAccessBody>
-              Só parte das suas fotos está disponível. Toque para abrir Ajustes e permitir mais itens
-              (ou “Todas as Fotos”).
-            </LimitedAccessBody>
+            <LimitedAccessTitle>{t('albums.limitedTitle')}</LimitedAccessTitle>
+            <LimitedAccessBody>{t('albums.limitedBody')}</LimitedAccessBody>
           </LimitedAccessBanner>
         ) : null}
 
@@ -644,7 +668,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
               </VirtualAlbumsRow>
               {processedAlbums.length === 0 && !randomOption ? (
                 <EmptyListCard>
-                  <Muted>Nenhum álbum encontrado.</Muted>
+                  <Muted>{t('albums.noneFound')}</Muted>
                 </EmptyListCard>
               ) : (
                 <>
@@ -679,7 +703,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
         <LoadingOverlay>
           <KleenBrand />
           <ActivityIndicator color={colors.brandSoft} size="small" />
-          <LoadingCaption>Preparando suas fotos…</LoadingCaption>
+          <LoadingCaption>{t('albums.loadingMedia')}</LoadingCaption>
         </LoadingOverlay>
       ) : null}
       {errorMessage && !loadingAssets ? (

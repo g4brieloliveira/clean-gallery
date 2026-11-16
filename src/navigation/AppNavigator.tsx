@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AlbumsScreen } from '../screens/AlbumsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SwipeScreen } from '../screens/SwipeScreen';
+import { VirtualAlbumScreen } from '../screens/VirtualAlbumScreen';
 import { colors } from '../theme/tokens';
 import type { RootStackParamList } from './types';
 
@@ -36,6 +37,7 @@ export function AppNavigator(): React.JSX.Element {
       >
         <Stack.Screen name="Albums" component={AlbumsScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="VirtualAlbum" component={VirtualAlbumScreen} />
         <Stack.Screen
           name="Swipe"
           component={SwipeScreen}

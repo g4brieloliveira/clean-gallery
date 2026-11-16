@@ -221,4 +221,35 @@ describe('galleryStore', () => {
     useGalleryStore.getState().resetOnboarding();
     expect(useGalleryStore.getState().hasSeenOnboarding).toBe(false);
   });
+
+  it('does not reopen pending deletes in physical album sessions', () => {
+    useGalleryStore.setState({ toDeleteIds: ['pending'] });
+    const sessionId = useGalleryStore.getState().beginSession({
+      album: album(),
+      assets: [asset('pending'), asset('fresh')],
+      sourceLoadState: 'loading',
+    });
+    expect(useGalleryStore.getState().queue.map((item) => item.id)).toEqual([
+      'fresh',
+    ]);
+
+    useGalleryStore
+      .getState()
+      .appendToQueue([asset('pending'), asset('later')], sessionId);
+    expect(useGalleryStore.getState().queue.map((item) => item.id)).toEqual([
+      'fresh',
+      'later',
+    ]);
+  });
+
+  it('keeps pending deletes visible in their virtual album', () => {
+    useGalleryStore.setState({ toDeleteIds: ['pending'] });
+    useGalleryStore.getState().beginSession({
+      album: album({ id: 'pending-delete', mode: 'pendingDelete' }),
+      assets: [asset('pending')],
+    });
+    expect(useGalleryStore.getState().queue.map((item) => item.id)).toEqual([
+      'pending',
+    ]);
+  });
 });

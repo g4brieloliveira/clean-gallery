@@ -10,6 +10,7 @@ import {
   type PanResponderGestureState,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/tokens';
 import { isGalleryVideo, type SwipeOutcome } from '../../types/domain';
 import type { SwipeCardProps } from './types';
@@ -34,6 +35,7 @@ import {
 const MAX_ROTATE_DEG = 12;
 
 export function SwipeCard(props: SwipeCardProps): React.JSX.Element {
+  const { t } = useTranslation();
   const { asset, cardWidth, cardHeight, swipeThreshold, onCommit, onAssetLoadFailed, disabled } = props;
   const insets = useSafeAreaInsets();
 
@@ -189,7 +191,7 @@ export function SwipeCard(props: SwipeCardProps): React.JSX.Element {
               </FullscreenHintButton>
               {videoLoadError && !onAssetLoadFailed ? (
                 <ImageLoading>
-                  <ImageErrorText>Este vídeo não abriu aqui. Toque para abrir em tela cheia.</ImageErrorText>
+                  <ImageErrorText>{t('mediaCard.videoError')}</ImageErrorText>
                 </ImageLoading>
               ) : null}
             </>
@@ -201,7 +203,7 @@ export function SwipeCard(props: SwipeCardProps): React.JSX.Element {
         ) : (
           <ImageLoading>
             {uriError && !onAssetLoadFailed ? (
-              <ImageErrorText>Não foi possível carregar esta mídia.</ImageErrorText>
+              <ImageErrorText>{t('mediaCard.loadError')}</ImageErrorText>
             ) : (
               <ActivityIndicator color={colors.textPrimary} size="large" />
             )}
@@ -260,7 +262,7 @@ export function SwipeCard(props: SwipeCardProps): React.JSX.Element {
               onPress={openInSystemGallery}
               accessibilityRole="button"
             >
-              <ImageErrorText>Abrir no app Fotos</ImageErrorText>
+              <ImageErrorText>{t('mediaCard.openPhotos')}</ImageErrorText>
             </FullscreenHintButton>
           ) : null}
         </PreviewBackdrop>

@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useState } from 'react';
 import { Linking, Modal, Share } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { SettingsScreenProps } from '../../navigation/types';
 import {
   FREE_DAILY_REVIEWS,
-  MAX_REWARDED_ADS_PER_DAY,
   REWARDED_AD_BONUS_REVIEWS,
 } from '../../monetization/policy';
 import { premiumProvider } from '../../monetization/providers';
@@ -75,6 +75,7 @@ function SettingsRow(props: SettingsRowProps): React.JSX.Element {
 export function SettingsScreen({
   navigation,
 }: SettingsScreenProps): React.JSX.Element {
+  const { t } = useTranslation();
   const premiumStatus = useMonetizationStore((s) => s.premiumStatus);
   const reviewsRemaining = useMonetizationStore((s) => s.remainingReviews());
   const setPremiumStatus = useMonetizationStore((s) => s.setPremiumStatus);
@@ -91,37 +92,35 @@ export function SettingsScreen({
       const result = await premiumProvider.restore();
       if (result === 'active') {
         setPremiumStatus('active');
-        setMessage('Compra restaurada. Premium ativo.');
+        setMessage(t('premium.restored'));
       } else if (result === 'inactive') {
         setPremiumStatus('inactive');
-        setMessage('Nenhuma assinatura ativa foi encontrada.');
+        setMessage(t('premium.noActive'));
       } else {
-        setMessage(
-          'Restauração disponível apenas no build nativo com a App Store configurada.',
-        );
+        setMessage(t('settings.restoreUnavailable'));
       }
     } finally {
       setLoading(false);
     }
-  }, [setPremiumStatus]);
+  }, [setPremiumStatus, t]);
 
   const shareDiagnostics = useCallback(async () => {
     const log = await exportLocalErrorLog();
     await Share.share({
-      title: 'Relatório técnico Kleen',
+      title: t('settings.reportTitle'),
       message: [
-        'Kleen — relatório técnico local',
-        'Não contém fotos, vídeos ou URIs da galeria.',
+        t('settings.reportHeading'),
+        t('settings.reportSafe'),
         '',
         log,
       ].join('\n'),
     });
-  }, []);
+  }, [t]);
 
   const clearDiagnostics = useCallback(async () => {
     await clearLocalErrorLog();
-    setMessage('Relatório técnico local apagado.');
-  }, []);
+    setMessage(t('settings.reportCleared'));
+  }, [t]);
 
   const replayOnboarding = useCallback(() => {
     resetOnboarding();
@@ -129,10 +128,10 @@ export function SettingsScreen({
   }, [navigation, resetOnboarding]);
 
   const isPremium = premiumStatus === 'active';
-  const planLabel = isPremium ? 'Premium' : 'Free';
+  const planLabel = isPremium ? t('swipe.premium') : t('settings.free');
   const quotaLabel = isPremium
-    ? 'Revisões ilimitadas'
-    : `${reviewsRemaining ?? 0} restantes hoje`;
+    ? t('settings.unlimited')
+    : t('settings.remainingToday', { count: reviewsRemaining ?? 0 });
 
   return (
     <Screen edges={['top', 'left', 'right']}>
@@ -140,91 +139,89 @@ export function SettingsScreen({
         <BackButton
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Voltar aos álbuns"
+          accessibilityLabel={t('common.backToAlbums')}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </BackButton>
-        <HeaderTitle accessibilityRole="header">Configurações</HeaderTitle>
+        <HeaderTitle accessibilityRole="header">{t('settings.title')}</HeaderTitle>
       </Header>
 
       <Scroll contentContainerStyle={{ paddingBottom: 40 }}>
-        <SectionTitle>Plano</SectionTitle>
+        <SectionTitle>{t('settings.plan')}</SectionTitle>
         <Card>
           <CardBody>
-            <CardTitle>Seu plano</CardTitle>
+            <CardTitle>{t('settings.yourPlan')}</CardTitle>
             <PlanBadge $premium={isPremium}>
               <PlanBadgeLabel>{planLabel}</PlanBadgeLabel>
             </PlanBadge>
             <QuotaText>{quotaLabel}</QuotaText>
             {!isPremium ? (
               <InfoText>
-                Hipótese atual: {FREE_DAILY_REVIEWS} revisões grátis/dia; anúncio
-                de teste libera +{REWARDED_AD_BONUS_REVIEWS}, até{' '}
-                {MAX_REWARDED_ADS_PER_DAY} vezes/dia.
+                {t('settings.hypothesis', {
+                  limit: FREE_DAILY_REVIEWS,
+                  bonus: REWARDED_AD_BONUS_REVIEWS,
+                })}
               </InfoText>
             ) : null}
           </CardBody>
           <SettingsRow
             icon="refresh-outline"
-            label="Restaurar compras"
-            meta={loading ? 'Verificando…' : undefined}
+            label={t('settings.restore')}
+            meta={loading ? t('settings.checking') : undefined}
             onPress={() => void restorePurchase()}
           />
           <SettingsRow
             icon="card-outline"
-            label="Gerenciar assinatura"
+            label={t('settings.manage')}
             onPress={() => void Linking.openURL(SUBSCRIPTIONS_URL)}
           />
         </Card>
 
-        <SectionTitle>Conta</SectionTitle>
+        <SectionTitle>{t('settings.account')}</SectionTitle>
         <Card>
           <CardBody>
-            <CardTitle>Sem cadastro necessário</CardTitle>
-            <InfoText>
-              O Kleen não exige login. Quando habilitado, o Premium fica ligado
-              ao Apple ID e pode ser restaurado pela App Store.
-            </InfoText>
+            <CardTitle>{t('settings.noAccountTitle')}</CardTitle>
+            <InfoText>{t('settings.noAccountBody')}</InfoText>
           </CardBody>
         </Card>
 
-        <SectionTitle>Privacidade e suporte</SectionTitle>
+        <SectionTitle>{t('settings.privacySupport')}</SectionTitle>
         <Card>
           <SettingsRow
             icon="shield-checkmark-outline"
-            label="Política de privacidade"
+            label={t('settings.privacy')}
             onPress={() => setPrivacyVisible(true)}
           />
           <SettingsRow
             icon="mail-outline"
-            label="Falar com o suporte"
+            label={t('settings.support')}
             onPress={() => void Linking.openURL(SUPPORT_EMAIL)}
           />
           <SettingsRow
             icon="document-text-outline"
-            label="Compartilhar relatório técnico"
-            meta="Sem fotos"
+            label={t('settings.shareReport')}
+            meta={t('settings.noPhotos')}
             onPress={() => void shareDiagnostics()}
-            accessibilityLabel="Compartilhar relatório técnico sem fotos, vídeos ou endereços da galeria"
+            accessibilityLabel={t('settings.shareReportA11y')}
           />
           <SettingsRow
             icon="trash-bin-outline"
-            label="Apagar relatório técnico"
+            label={t('settings.clearReport')}
             onPress={() => void clearDiagnostics()}
           />
         </Card>
 
-        <SectionTitle>Ajuda</SectionTitle>
+        <SectionTitle>{t('settings.help')}</SectionTitle>
         <Card>
           <SettingsRow
             icon="play-circle-outline"
-            label="Ver introdução novamente"
+            label={t('settings.replay')}
             onPress={replayOnboarding}
           />
         </Card>
 
         {message ? <StatusMessage accessibilityRole="text">{message}</StatusMessage> : null}
-        <InfoText>Kleen 1.0.0 · Processamento local da fototeca</InfoText>
+        <InfoText>{t('settings.localProcessing')}</InfoText>
       </Scroll>
 
       <Modal
@@ -236,25 +233,16 @@ export function SettingsScreen({
         <PrivacyBackdrop>
           <PrivacyCard accessibilityViewIsModal>
             <PrivacyTitle accessibilityRole="header">
-              Privacidade no Kleen
+              {t('settings.privacyTitle')}
             </PrivacyTitle>
-            <PrivacyBody>
-              Fotos e vídeos são processados localmente no iPhone e não são
-              enviados ao Kleen. O app não exige cadastro. Decisões, quota e
-              preferências ficam no armazenamento local. O relatório técnico
-              não inclui mídias nem endereços da fototeca e só é compartilhado
-              quando você escolhe enviá-lo.
-            </PrivacyBody>
-            <PrivacyBody>
-              Compras e anúncios reais ainda não estão ativos. A política será
-              atualizada antes dessas integrações.
-            </PrivacyBody>
+            <PrivacyBody>{t('settings.privacyBody')}</PrivacyBody>
+            <PrivacyBody>{t('settings.privacyFuture')}</PrivacyBody>
             <PrivacyButton
               onPress={() => setPrivacyVisible(false)}
               accessibilityRole="button"
-              accessibilityLabel="Fechar política de privacidade"
+              accessibilityLabel={t('settings.privacyCloseA11y')}
             >
-              <PrivacyButtonLabel>Entendi</PrivacyButtonLabel>
+              <PrivacyButtonLabel>{t('settings.privacyClose')}</PrivacyButtonLabel>
             </PrivacyButton>
           </PrivacyCard>
         </PrivacyBackdrop>

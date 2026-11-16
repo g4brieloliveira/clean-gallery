@@ -78,10 +78,6 @@ export const useMonetizationStore = create<MonetizationState>()(
         const state = get();
         const ledger = ledgerForDay(state.ledger, dayKey);
         const next = grantRewardedAdBonus(ledger);
-        if (!next) {
-          if (ledger !== state.ledger) set({ ledger });
-          return false;
-        }
         set({ ledger: next });
         return true;
       },

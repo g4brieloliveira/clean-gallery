@@ -1,6 +1,5 @@
-export const FREE_DAILY_REVIEWS = 100;
+export const FREE_DAILY_REVIEWS = 50;
 export const REWARDED_AD_BONUS_REVIEWS = 25;
-export const MAX_REWARDED_ADS_PER_DAY = 2;
 
 export type PremiumStatus = 'unknown' | 'inactive' | 'active';
 
@@ -70,12 +69,11 @@ export function refundReview(
   return { ...ledger, reviewsUsed: ledger.reviewsUsed - 1 };
 }
 
-export function canCompleteRewardedAd(ledger: DailyReviewLedger): boolean {
-  return ledger.rewardedAdsCompleted < MAX_REWARDED_ADS_PER_DAY;
+export function canCompleteRewardedAd(_ledger: DailyReviewLedger): boolean {
+  return true;
 }
 
-export function grantRewardedAdBonus(ledger: DailyReviewLedger): DailyReviewLedger | null {
-  if (!canCompleteRewardedAd(ledger)) return null;
+export function grantRewardedAdBonus(ledger: DailyReviewLedger): DailyReviewLedger {
   return {
     ...ledger,
     bonusReviewsGranted:

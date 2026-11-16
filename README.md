@@ -40,7 +40,7 @@ e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
 ## Fluxo
 
 1. **Onboarding** — na primeira abertura: permissão, gestos, processamento local, remoção no iOS e suporte seguro.
-2. **Álbuns** — escolha **Embaralhado** (lotes misturados, não amostragem global) ou um álbum; o total exibido é de **mídias únicas** na biblioteca. Acesso limitado à fototeca mostra um banner com atalho para Ajustes.
+2. **Álbuns** — escolha **Embaralhado** ou um álbum; veja o total de itens na biblioteca. Acesso limitado à fototeca mostra um banner com atalho para Ajustes. Os álbuns virtuais **Aprovadas** e **Para remover** abrem em grade mesmo com o limite diário esgotado.
 3. **Swipe** — arraste à esquerda para marcar remoção; à direita para manter. Há botões na barra como alternativa aos gestos (acessibilidade). Vídeos usam controles nativos (play/pause).
 4. **Confirmação** — toque na faixa de remoção ou conclua a fila; o modal explica **Apagados Recentemente**. O resumo da sessão usa **contagens**, sem GB inventados.
 
@@ -48,8 +48,8 @@ e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
 
 O domínio de monetização já pode ser testado sem cobrança real:
 
-- 100 revisões gratuitas/dia (hipótese);
-- rewarded ad **de teste** libera +25, até 2 vezes/dia;
+- 50 revisões gratuitas/dia (hipótese);
+- rewarded ad **de teste** libera +25, sem teto diário;
 - Premium usa um provider fake e ainda não cobra;
 - undo devolve a revisão; falha/skip/defer não consomem;
 - remoções já pendentes nunca são bloqueadas pelo limite.

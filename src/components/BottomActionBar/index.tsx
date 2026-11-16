@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/tokens';
 import type { BottomActionBarProps } from './types';
 import {
@@ -14,6 +15,7 @@ import {
 } from './styles';
 
 export function BottomActionBar(props: BottomActionBarProps): React.JSX.Element {
+  const { t } = useTranslation();
   const { deleteCount, keepCount, remaining, onDeletePress, onKeepPress, disabled } = props;
 
   return (
@@ -24,7 +26,7 @@ export function BottomActionBar(props: BottomActionBarProps): React.JSX.Element 
         onPress={onDeletePress}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel="Marcar para remover. Alternativa ao gesto de deslizar para a esquerda."
+        accessibilityLabel={t('actions.removeA11y')}
       >
         <Ionicons name="close" size={32} color={colors.textPrimary} />
       </CircleButton>
@@ -34,9 +36,7 @@ export function BottomActionBar(props: BottomActionBarProps): React.JSX.Element 
           <CountSep> / </CountSep>
           <CountKeep>{keepCount}</CountKeep>
         </CountRow>
-        <Remaining>
-          {remaining} restante{remaining === 1 ? '' : 's'}
-        </Remaining>
+        <Remaining>{t('common.remaining', { count: remaining })}</Remaining>
       </Center>
       <CircleButton
         $variant="keep"
@@ -44,7 +44,7 @@ export function BottomActionBar(props: BottomActionBarProps): React.JSX.Element 
         onPress={onKeepPress}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel="Manter mídia. Alternativa ao gesto de deslizar para a direita."
+        accessibilityLabel={t('actions.keepA11y')}
       >
         <Ionicons name="checkmark" size={31} color={colors.textPrimary} />
       </CircleButton>
