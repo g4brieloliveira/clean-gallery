@@ -12,10 +12,12 @@
     },
     "ios": {
       "bundleIdentifier": "com.g4brieloliveira.kleen",
+      "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "O Kleen precisa acessar suas fotos e vídeos para você revisar e organizar sua biblioteca.",
-        "NSPhotoLibraryAddUsageDescription": "O Kleen pode salvar as alterações que você autorizar na sua fototeca."
+        "NSPhotoLibraryAddUsageDescription": "O Kleen pode salvar as alterações que você autorizar na sua fototeca.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -58,7 +60,8 @@
           "backgroundColor": "#9088F0"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-dev-client"
     ],
     "extra": {
       "eas": {

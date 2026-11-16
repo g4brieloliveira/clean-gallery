@@ -20,13 +20,14 @@ Use o app em um **dispositivo físico** ou emulador com acesso à biblioteca de 
 ### Builds EAS
 
 ```bash
-npx eas-cli build --profile development --platform ios
-npx eas-cli build --profile preview --platform ios
-npx eas-cli build --profile production --platform ios
+npm run eas:dev      # development client (iPhone)
+npm run eas:preview  # distribuição interna
+npm run eas:prod     # produção / TestFlight
+npm run eas:submit   # envia o último production build ao ASC
 ```
 
-Os três perfis estão em `eas.json`. O build assinado para aparelho físico depende do acesso Apple
-e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
+Guia completo: [`docs/TESTFLIGHT.md`](docs/TESTFLIGHT.md) · ASC: [`docs/APP_STORE_CONNECT.md`](docs/APP_STORE_CONNECT.md).
+Nenhum segredo Apple/RevenueCat deve ser versionado.
 
 ### Scripts
 

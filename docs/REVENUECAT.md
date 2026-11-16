@@ -12,27 +12,46 @@
 
 ## Produtos esperados no Offering atual
 
-| Package id | Tipo |
+| Package id | Tipo ASC |
 |---|---|
-| `lifetime` | compra única |
-| `yearly` | assinatura anual |
-| `monthly` | assinatura mensal |
+| `lifetime` | Non-Consumable |
+| `yearly` | Auto-Renewable |
+| `monthly` | Auto-Renewable |
 
-Todos devem desbloquear o entitlement Pro acima. Crie um Paywall no Offering atual no dashboard.
+Todos devem desbloquear o entitlement Pro acima. Crie um Paywall + Customer Center no Offering **current**.
 
-## Chaves
+## Conectar App Store (produção)
 
-- Test Store (atual): `test_…` em `src/monetization/config.ts`
-- Produção iOS/Android: `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`
+1. No RevenueCat: Project → Apps → iOS app com bundle `com.g4brieloliveira.kleen`
+2. Cole a **In-App Purchase Key** (`.p8`) do App Store Connect → Users and Access → Integrations → In-App Purchase
+3. Ou Shared Secret legado, se ainda usar
+4. Importe / mapeie `lifetime`, `yearly`, `monthly` ao entitlement Pro
+5. Offering current com packages ids exatamente: `lifetime`, `yearly`, `monthly`
+6. Copie a API key pública **Apple** (`appl_…`)
+
+### EAS Secret
+
+```bash
+eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_IOS_API_KEY --value 'appl_XXXX' --type string
+```
+
+Sem o secret, builds usam `test_…` (Test Store) — ok para UI, insuficiente para Sandbox Apple real.
+
+## Chaves no código
+
+- Fallback Test Store: `REVENUECAT_API_KEY_TEST` em `src/monetization/config.ts`
+- Runtime iOS: `process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`
 
 ## Como testar
 
 1. Dashboard: produtos + entitlement + offering + paywall + customer center
-2. **Expo Go:** o paywall nativo **não funciona** (Preview API tenta um path de browser e falha com `document is not available`). O app abre um modal de teste local.
-3. Compras / paywall reais: **development build** (`eas build` / `expo-dev-client`) + Sandbox Apple
+2. **Expo Go:** paywall nativo **não funciona** → modal de teste local
+3. **Development build** + Sandbox Apple: paywall nativo + cobrança Sandbox
+4. **TestFlight:** mesma chave `appl_…`; testers usam Sandbox / produção conforme ASC
 
 ## Código principal
 
 - `src/monetization/config.ts`
 - `src/monetization/revenueCat.ts`
 - `src/monetization/providers.ts` (`RevenueCatPremiumProvider`)
+- `src/monetization/environment.ts` (detecta Expo Go vs native UI)
