@@ -3,7 +3,15 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions } from 'react-native';
 import { BottomActionBar } from '../../components/BottomActionBar';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
+import { PremiumPreviewModal } from '../../components/PremiumPreviewModal';
+import { ReviewLimitPanel } from '../../components/ReviewLimitPanel';
 import { SwipeCard } from '../../components/SwipeCard';
+import { REWARDED_AD_BONUS_REVIEWS } from '../../monetization/policy';
+import {
+  premiumProvider,
+  requestRewardedReviewBonus,
+  rewardedAdProvider,
+} from '../../monetization/providers';
 import type { SwipeScreenProps } from '../../navigation/types';
 import {
   deleteAssetsFromLibrary,
@@ -16,6 +24,7 @@ import {
   selectRemainingCount,
   useGalleryStore,
 } from '../../store/galleryStore';
+import { useMonetizationStore } from '../../store/monetizationStore';
 import type { SwipeOutcome } from '../../types/domain';
 import { colors } from '../../theme/tokens';
 import {
@@ -66,10 +75,22 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
 
   const currentAsset = useGalleryStore(selectCurrentAsset);
   const remaining = useGalleryStore(selectRemainingCount);
+  const canReviewToday = useMonetizationStore((s) => s.canReview());
+  const reviewsRemainingToday = useMonetizationStore((s) => s.remainingReviews());
+  const canWatchRewardedAd = useMonetizationStore((s) => s.canWatchRewardedAd());
+  const consumeReview = useMonetizationStore((s) => s.consumeReview);
+  const refundReview = useMonetizationStore((s) => s.refundReview);
+  const grantRewardedAdBonus = useMonetizationStore((s) => s.grantRewardedAdBonus);
+  const setPremiumStatus = useMonetizationStore((s) => s.setPremiumStatus);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [adLoading, setAdLoading] = useState(false);
+  const [limitMessage, setLimitMessage] = useState<string | null>(null);
+  const [premiumOpen, setPremiumOpen] = useState(false);
+  const [premiumLoading, setPremiumLoading] = useState(false);
+  const [premiumMessage, setPremiumMessage] = useState<string | null>(null);
 
   const { width, height } = Dimensions.get('window');
   const layout = useMemo(() => {
@@ -83,6 +104,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   const canUndo = history.length > 0 && !sessionFinished;
   const canDefer =
     !sessionFinished &&
+    canReviewToday &&
     !!currentAsset &&
     queue.length >= 2 &&
     currentIndex < queue.length - 1;
@@ -111,23 +133,36 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     navigation.popToTop();
   }, [navigation]);
 
-  const onCommit = useCallback(
+  const commitReview = useCallback(
     (outcome: SwipeOutcome) => {
       if (!currentAsset) return;
+      const liveState = useGalleryStore.getState();
+      const liveAsset = liveState.queue[liveState.currentIndex];
+      // Guard against duplicate gesture/button callbacks consuming quota after
+      // the gallery action already advanced to the next asset.
+      if (!liveAsset || liveAsset.id !== currentAsset.id) return;
+      if (!consumeReview()) {
+        setLimitMessage('Seu limite de revisões de hoje terminou.');
+        return;
+      }
       applySwipe(outcome, currentAsset.id);
     },
-    [applySwipe, currentAsset],
+    [applySwipe, consumeReview, currentAsset],
   );
 
   const onBarDelete = useCallback(() => {
-    if (!currentAsset) return;
-    applySwipe('delete', currentAsset.id);
-  }, [applySwipe, currentAsset]);
+    commitReview('delete');
+  }, [commitReview]);
 
   const onBarKeep = useCallback(() => {
-    if (!currentAsset) return;
-    applySwipe('keep', currentAsset.id);
-  }, [applySwipe, currentAsset]);
+    commitReview('keep');
+  }, [commitReview]);
+
+  const onUndo = useCallback(() => {
+    if (history.length === 0) return;
+    undoLast();
+    refundReview();
+  }, [history.length, refundReview, undoLast]);
 
   const onAssetLoadFailed = useCallback(() => {
     if (!currentAsset) return;
@@ -179,6 +214,79 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     }
   }, [applyConfirmedDeletes, toDeleteIds]);
 
+  const onWatchRewardedAd = useCallback(async () => {
+    if (!canWatchRewardedAd || adLoading) return;
+    setAdLoading(true);
+    setLimitMessage(null);
+    try {
+      const result = await requestRewardedReviewBonus(
+        rewardedAdProvider,
+        grantRewardedAdBonus,
+      );
+      if (result.adResult === 'completed') {
+        setLimitMessage(
+          result.granted
+            ? `Mais ${REWARDED_AD_BONUS_REVIEWS} revisões liberadas.`
+            : 'O teto diário de anúncios foi atingido.',
+        );
+        return;
+      }
+      setLimitMessage(
+        result.adResult === 'cancelled'
+          ? 'Anúncio cancelado; nenhum crédito foi adicionado.'
+          : 'Anúncio indisponível agora; nenhum crédito foi adicionado.',
+      );
+    } finally {
+      setAdLoading(false);
+    }
+  }, [adLoading, canWatchRewardedAd, grantRewardedAdBonus]);
+
+  const onPremium = useCallback(() => {
+    setPremiumMessage(null);
+    setPremiumOpen(true);
+  }, []);
+
+  const onPurchasePremium = useCallback(async () => {
+    setPremiumLoading(true);
+    setPremiumMessage(null);
+    try {
+      const result = await premiumProvider.purchase();
+      if (result === 'active') {
+        setPremiumStatus('active');
+        setPremiumMessage('Premium ativado.');
+        return;
+      }
+      setPremiumMessage(
+        'Compra indisponível neste build. Nenhuma cobrança foi feita.',
+      );
+    } finally {
+      setPremiumLoading(false);
+    }
+  }, [setPremiumStatus]);
+
+  const onRestorePremium = useCallback(async () => {
+    setPremiumLoading(true);
+    setPremiumMessage(null);
+    try {
+      const result = await premiumProvider.restore();
+      if (result === 'active') {
+        setPremiumStatus('active');
+        setPremiumMessage('Compra restaurada.');
+        return;
+      }
+      if (result === 'inactive') {
+        setPremiumStatus('inactive');
+        setPremiumMessage('Nenhuma assinatura ativa foi encontrada.');
+        return;
+      }
+      setPremiumMessage(
+        'Restauração indisponível neste build. Tente novamente no build nativo.',
+      );
+    } finally {
+      setPremiumLoading(false);
+    }
+  }, [setPremiumStatus]);
+
   const emptyQueueOnArrival = queue.length === 0;
   const reviewedCount = sessionDeleteCount + sessionKeepCount;
 
@@ -197,7 +305,10 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
           <AlbumPickerRow onPress={openAlbums}>
             <Ionicons name="images-outline" size={18} color={colors.textSecondary} />
             <AlbumPickerText>
-              {album.title} · {remaining} restante{remaining === 1 ? '' : 's'}{' '}
+              {album.title} · {remaining} restante{remaining === 1 ? '' : 's'}
+              {reviewsRemainingToday === null
+                ? ' · Premium'
+                : ` · ${reviewsRemainingToday} hoje`}{' '}
               <AlbumPickerChevron>›</AlbumPickerChevron>
             </AlbumPickerText>
           </AlbumPickerRow>
@@ -213,7 +324,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             <Ionicons name="shuffle-outline" size={22} color={colors.textSecondary} />
           </DeferButton>
           <UndoButton
-            onPress={() => undoLast()}
+            onPress={onUndo}
             disabled={!canUndo}
             $dimmed={!canUndo}
             accessibilityRole="button"
@@ -243,7 +354,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         </CardArea>
       ) : null}
 
-      {!emptyQueueOnArrival && currentAsset ? (
+      {!emptyQueueOnArrival && currentAsset && canReviewToday ? (
         <CardArea>
           <SwipeCard
             key={currentAsset.id}
@@ -251,9 +362,25 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
             cardWidth={layout.cardWidth}
             cardHeight={layout.cardHeight}
             swipeThreshold={layout.swipeThreshold}
-            onCommit={onCommit}
+            onCommit={commitReview}
             onAssetLoadFailed={onAssetLoadFailed}
-            disabled={false}
+            disabled={!canReviewToday}
+          />
+        </CardArea>
+      ) : null}
+
+      {!emptyQueueOnArrival && currentAsset && !canReviewToday ? (
+        <CardArea>
+          <ReviewLimitPanel
+            adBonus={REWARDED_AD_BONUS_REVIEWS}
+            canWatchAd={canWatchRewardedAd}
+            adLoading={adLoading}
+            testMode={rewardedAdProvider.mode === 'fake'}
+            pendingDeleteCount={toDeleteIds.length}
+            message={limitMessage}
+            onWatchAd={() => void onWatchRewardedAd()}
+            onPremium={() => void onPremium()}
+            onReviewDeletes={() => setModalOpen(true)}
           />
         </CardArea>
       ) : null}
@@ -286,7 +413,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         </CardArea>
       ) : null}
 
-      {toDeleteIds.length > 0 && currentAsset && !sessionFinished ? (
+      {toDeleteIds.length > 0 && currentAsset && !sessionFinished && canReviewToday ? (
         <PendingStrip onPress={() => setModalOpen(true)}>
           <PendingStripLabel>
             {toDeleteIds.length} pronta{toDeleteIds.length === 1 ? '' : 's'} para remover · Revisar
@@ -294,7 +421,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         </PendingStrip>
       ) : null}
 
-      {!emptyQueueOnArrival && !sessionFinished ? (
+      {!emptyQueueOnArrival && !sessionFinished && canReviewToday ? (
         <BottomActionBar
           deleteCount={sessionDeleteCount}
           keepCount={sessionKeepCount}
@@ -311,6 +438,16 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         loading={deleteLoading}
         onCancel={() => setModalOpen(false)}
         onConfirm={() => void onConfirmDelete()}
+      />
+
+      <PremiumPreviewModal
+        visible={premiumOpen}
+        loading={premiumLoading}
+        message={premiumMessage}
+        testMode={premiumProvider.mode === 'fake'}
+        onClose={() => setPremiumOpen(false)}
+        onPurchase={() => void onPurchasePremium()}
+        onRestore={() => void onRestorePremium()}
       />
 
       {deleteError ? <ErrorBanner>{deleteError}</ErrorBanner> : null}
