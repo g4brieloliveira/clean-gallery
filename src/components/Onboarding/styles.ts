@@ -1,3 +1,4 @@
+import { Animated } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,6 +14,8 @@ export const Card = styled.View`
   justify-content: center;
   padding-bottom: ${({ theme }) => theme.spacing.xxl}px;
 `;
+
+export const Slide = styled(Animated.View)``;
 
 export const StepIcon = styled.View`
   width: 72px;
@@ -46,12 +49,22 @@ export const Dots = styled.View`
   gap: ${({ theme }) => theme.spacing.sm}px;
 `;
 
-export const Dot = styled.View<{ $active: boolean }>`
-  width: ${({ $active }) => ($active ? 18 : 8)}px;
+export const DotTrack = styled.View<{ $active: boolean; $complete: boolean }>`
+  width: ${({ $active }) => ($active ? 28 : 8)}px;
   height: 8px;
   border-radius: 4px;
-  background-color: ${({ theme, $active }) =>
-    $active ? theme.colors.brandSoft : theme.colors.surfaceElevated};
+  overflow: hidden;
+  background-color: ${({ theme, $complete }) =>
+    $complete ? theme.colors.brandSoft : theme.colors.surfaceElevated};
+`;
+
+export const DotProgress = styled(Animated.View)`
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+  background-color: ${({ theme }) => theme.colors.brandSoft};
 `;
 
 export const Footer = styled.View`
