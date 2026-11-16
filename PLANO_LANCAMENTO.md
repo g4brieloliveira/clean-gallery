@@ -234,14 +234,14 @@ Esta fase começa somente após o **GO** do beta técnico.
 - [ ] Atualizar política e termos; não declarar simplesmente “não coleta dados” se SDKs processarem identificadores, compras ou diagnóstico.
 - [ ] Criar produtos no App Store Connect e entitlements no RevenueCat.
 - [ ] Implementar compra, restauração, expiração, modo offline e tratamento de erro.
-- [ ] Garantir que exclusões já selecionadas não sejam bloqueadas por um paywall inesperado.
+- [x] Garantir que exclusões já selecionadas não sejam bloqueadas por um paywall inesperado.
 - [ ] Exibir preço, período, renovação e condições de forma clara.
 - [ ] Testar todas as compras em build nativo Sandbox; RevenueCat não deve ser validado apenas no Expo Go.
 
 ### P1
 
-- [ ] Implementar limite gratuito simples e compreensível, definindo fuso, virada do dia, reinstalação e funcionamento offline.
-- [ ] Oferecer **Assistir anúncio** para desbloquear +X revisões após o limite gratuito (teto diário; coexistir com Pro) — CG-111.
+- [x] Implementar limite gratuito simples e compreensível, definindo fuso, virada do dia, reinstalação e funcionamento offline.
+- [ ] Oferecer **Assistir anúncio** para desbloquear +X revisões após o limite gratuito (teto diário; coexistir com Pro) — CG-111. Política, adapter fake e UX prontos; SDK nativo pendente.
 - [ ] Selecionar um único recurso Pro validado pelo beta, como filtro por capturas ou vídeos grandes.
 - [ ] Testar ofertas e preços em vez de assumir os valores iniciais.
 

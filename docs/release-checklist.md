@@ -90,7 +90,8 @@ Decisão: _____________ Data: _____________ Aprovador: _____________
 |---|---|---|
 | Label + política (CG-73, CG-74) | [ ] | |
 | Matriz Sandbox nativa (CG-79, CG-86…CG-91) | [ ] | |
-| Paywall não bloqueia exclusão pendente (CG-77) | [ ] | |
+| Fundação pré-Apple (CG-80, CG-111 fase A) | [x] | Quota, providers fake, Premium preview e reward testados em PR #15. |
+| Paywall não bloqueia exclusão pendente (CG-77) | [x] | Gate mantém botão para revisar/remover pendências. |
 
 - **GO:** Sandbox completa, docs coerentes, oferta clara.
 - **NO-GO:** restore inconsistente, privacidade indefinida, preço enganoso, só Expo Go.
