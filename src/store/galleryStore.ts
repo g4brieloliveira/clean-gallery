@@ -68,6 +68,7 @@ interface GalleryState {
   undoLast: () => void;
   clearPendingDeletes: () => void;
   completeOnboarding: () => void;
+  resetOnboarding: () => void;
   /**
    * Apply a confirmed library deletion.
    * Clears undo history (policy A) so undo never references removed media.
@@ -276,6 +277,8 @@ export const useGalleryStore = create<GalleryState>()(
       clearPendingDeletes: () => set({ toDeleteIds: [] }),
 
       completeOnboarding: () => set({ hasSeenOnboarding: true }),
+
+      resetOnboarding: () => set({ hasSeenOnboarding: false }),
 
       applyConfirmedDeletes: (deletedIds) => {
         if (deletedIds.length === 0) return;

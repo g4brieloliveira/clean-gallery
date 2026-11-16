@@ -28,6 +28,16 @@ Depois da conta Apple:
 | Pro | revisões sem limite; não mostra gate de anúncio |
 | Delete pendente | confirmação/remoção permanece acessível mesmo sem quota |
 
+### Hipótese de oferta e preço
+
+- Uma assinatura mensal simples é a primeira oferta a testar.
+- Faixa exploratória: **R$ 9,90 a R$ 19,90/mês**, sem preço escolhido.
+- Uma opção anual só deve entrar após validar retenção e intenção de compra.
+- O teste deve usar preços localizados da App Store; nenhum valor será exibido
+  como final antes de o produto existir no App Store Connect.
+- “Restaurar compras” e “Gerenciar assinatura” devem estar disponíveis sem
+  login próprio. O entitlement será ligado ao Apple ID.
+
 ## Regra de dia e persistência (CG-80)
 
 - Dia local do aparelho (`YYYY-MM-DD`), atualizado ao consultar/consumir quota.

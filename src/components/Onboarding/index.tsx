@@ -48,6 +48,12 @@ const STEPS: readonly Step[] = [
     title: 'Remoção no iOS',
     body: 'Ao confirmar, os itens vão para “Apagados Recentemente” no app Fotos. O Kleen não restaura depois, e o espaço pode não liberar na hora.',
   },
+  {
+    key: 'support',
+    icon: 'document-text-outline',
+    title: 'Relatar um problema',
+    body: 'Em Configurações, compartilhe o relatório técnico sem fotos, vídeos ou endereços da galeria. Nunca envie suas mídias pessoais ao suporte.',
+  },
 ];
 
 interface OnboardingProps {
