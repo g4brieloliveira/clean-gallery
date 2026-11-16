@@ -44,19 +44,19 @@ e das credenciais acompanhadas em CG-12; nenhum segredo deve ser versionado.
 3. **Swipe** — arraste à esquerda para marcar remoção; à direita para manter. Há botões na barra como alternativa aos gestos (acessibilidade). Vídeos usam controles nativos (play/pause).
 4. **Confirmação** — toque na faixa de remoção ou conclua a fila; o modal explica **Apagados Recentemente**. O resumo da sessão usa **contagens**, sem GB inventados.
 
-## Monetização pré-Apple
-
-O domínio de monetização já pode ser testado sem cobrança real:
+## Monetização
 
 - 50 revisões gratuitas/dia (hipótese);
 - rewarded ad **de teste** libera +25, sem teto diário;
-- Premium usa um provider fake e ainda não cobra;
+- Premium via **RevenueCat** (paywall + restore + Customer Center);
+- produtos esperados: `monthly`, `yearly`, `lifetime`;
 - undo devolve a revisão; falha/skip/defer não consomem;
 - remoções já pendentes nunca são bloqueadas pelo limite.
 
-Providers nativos entram somente depois da conta Apple e devem preservar as
-interfaces em `src/monetization/providers.ts`. Regras e hipóteses:
-[`docs/monetization-hypotheses.md`](docs/monetization-hypotheses.md).
+Setup do dashboard e chaves: [`docs/REVENUECAT.md`](docs/REVENUECAT.md).
+Hipóteses: [`docs/monetization-hypotheses.md`](docs/monetization-hypotheses.md).
+
+Compras reais exigem development build (não só Expo Go) e Sandbox Apple.
 
 ## Configurações e suporte
 

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { AlbumListIconName } from '../../components/AlbumListItem/types';
 import { AlbumListItem } from '../../components/AlbumListItem';
+import { BrandSplash } from '../../components/BrandSplash';
 import { KleenBrand } from '../../components/KleenBrand';
 import { Onboarding } from '../../components/Onboarding';
 import {
@@ -31,7 +32,6 @@ import { colors } from '../../theme/tokens';
 import { i18n } from '../../i18n';
 import {
   Centered,
-  CheckingCaption,
   Content,
   EmptyListCard,
   ErrorRowInset,
@@ -437,14 +437,7 @@ export function AlbumsScreen({ navigation }: AlbumsScreenProps): React.JSX.Eleme
   }
 
   if (permissionPhase === 'checking') {
-    return (
-      <Screen edges={['top', 'left', 'right']}>
-        <Centered>
-          <ActivityIndicator color="#fff" />
-          <CheckingCaption>{t('albums.checkingPermission')}</CheckingCaption>
-        </Centered>
-      </Screen>
-    );
+    return <BrandSplash caption={t('albums.checkingPermission')} />;
   }
 
   if (permissionPhase === 'denied') {

@@ -1,22 +1,20 @@
 import React from 'react';
-import type { ImageStyle, StyleProp } from 'react-native';
-import { BrandIcon, BrandRow, BrandWordmark } from './styles';
+import { KleenMark } from '../KleenMark';
+import { BrandMarkFrame, BrandRow, BrandWordmark } from './styles';
 
 interface KleenBrandProps {
   readonly compact?: boolean;
-  readonly iconStyle?: StyleProp<ImageStyle>;
 }
 
-export function KleenBrand({ compact = false, iconStyle }: KleenBrandProps): React.JSX.Element {
+export function KleenBrand({
+  compact = false,
+}: KleenBrandProps): React.JSX.Element {
   return (
     <BrandRow accessibilityRole="header" accessibilityLabel="Kleen">
-      <BrandIcon
-        source={require('../../../assets/icon.png')}
-        style={iconStyle}
-        $compact={compact}
-      />
+      <BrandMarkFrame $compact={compact}>
+        <KleenMark variant="icon" size={compact ? 28 : 36} />
+      </BrandMarkFrame>
       <BrandWordmark $compact={compact}>Kleen</BrandWordmark>
     </BrandRow>
   );
 }
-

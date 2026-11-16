@@ -90,9 +90,10 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [adLoading, setAdLoading] = useState(false);
   const [limitMessage, setLimitMessage] = useState<string | null>(null);
-  const [premiumOpen, setPremiumOpen] = useState(false);
   const [premiumLoading, setPremiumLoading] = useState(false);
+  const [premiumOpen, setPremiumOpen] = useState(false);
   const [premiumMessage, setPremiumMessage] = useState<string | null>(null);
+  const previewPaywall = !premiumProvider.canPresentNativePaywall();
 
   const { width, height } = Dimensions.get('window');
   const layout = useMemo(() => {
@@ -249,26 +250,67 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
     }
   }, [adLoading, canWatchRewardedAd, grantRewardedAdBonus, t]);
 
-  const onPremium = useCallback(() => {
+  const onPremium = useCallback(async () => {
+    if (premiumLoading) return;
+    setLimitMessage(null);
     setPremiumMessage(null);
-    setPremiumOpen(true);
-  }, []);
+
+    if (previewPaywall) {
+      setPremiumOpen(true);
+      return;
+    }
+
+    setPremiumLoading(true);
+    try {
+      const result = await premiumProvider.purchase();
+      if (result === 'active') {
+        setPremiumStatus('active');
+        setLimitMessage(t('premium.active'));
+        return;
+      }
+      if (result === 'fallback') {
+        setPremiumOpen(true);
+        return;
+      }
+      if (result === 'cancelled') return;
+      if (result === 'failed') {
+        setLimitMessage(t('premium.purchaseFailed'));
+        return;
+      }
+      setLimitMessage(t('premium.purchaseUnavailable'));
+    } finally {
+      setPremiumLoading(false);
+    }
+  }, [premiumLoading, previewPaywall, setPremiumStatus, t]);
 
   const onPurchasePremium = useCallback(async () => {
     setPremiumLoading(true);
     setPremiumMessage(null);
     try {
+      if (previewPaywall) {
+        await premiumProvider.activatePreviewPremium();
+        setPremiumStatus('active');
+        setPremiumOpen(false);
+        setLimitMessage(t('premium.active'));
+        return;
+      }
       const result = await premiumProvider.purchase();
       if (result === 'active') {
         setPremiumStatus('active');
-        setPremiumMessage(t('premium.active'));
+        setPremiumOpen(false);
+        setLimitMessage(t('premium.active'));
         return;
       }
-      setPremiumMessage(t('premium.purchaseUnavailable'));
+      if (result === 'cancelled') return;
+      setPremiumMessage(
+        result === 'failed'
+          ? t('premium.purchaseFailed')
+          : t('premium.purchaseUnavailable'),
+      );
     } finally {
       setPremiumLoading(false);
     }
-  }, [setPremiumStatus, t]);
+  }, [previewPaywall, setPremiumStatus, t]);
 
   const onRestorePremium = useCallback(async () => {
     setPremiumLoading(true);
@@ -277,15 +319,15 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
       const result = await premiumProvider.restore();
       if (result === 'active') {
         setPremiumStatus('active');
-        setPremiumMessage(t('premium.restored'));
+        setPremiumOpen(false);
+        setLimitMessage(t('premium.restored'));
         return;
       }
       if (result === 'inactive') {
-        setPremiumStatus('inactive');
         setPremiumMessage(t('premium.noActive'));
         return;
       }
-      setPremiumMessage(t('premium.restoreUnavailable'));
+      setPremiumMessage(t('premium.restoreFailed'));
     } finally {
       setPremiumLoading(false);
     }
@@ -447,7 +489,7 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         visible={premiumOpen}
         loading={premiumLoading}
         message={premiumMessage}
-        testMode={premiumProvider.mode === 'fake'}
+        testMode={previewPaywall}
         onClose={() => setPremiumOpen(false)}
         onPurchase={() => void onPurchasePremium()}
         onRestore={() => void onRestorePremium()}

@@ -8,6 +8,7 @@ export const en = {
     remaining_one: '{{count}} remaining',
     remaining_other: '{{count}} remaining',
     cancel: 'Cancel',
+    close: 'Close',
     retry: 'Try again',
   },
   albums: {
@@ -61,6 +62,8 @@ export const en = {
     reviewA11y: 'Review this album as cards',
     emptyTitle: 'This album is empty',
     emptyBody: 'Items you review will appear here.',
+    openPreviewA11y: 'Open media fullscreen',
+    previewCounter: '{{current}} of {{total}}',
   },
   swipe: {
     title: 'Review',
@@ -147,6 +150,7 @@ export const en = {
     remainingToday: '{{count}} remaining today',
     hypothesis:
       '{{limit}} free reviews per day. Each ad unlocks {{bonus}} more.',
+    upgrade: 'Get Premium',
     restore: 'Restore purchases',
     checking: 'Checking…',
     manage: 'Manage subscription',
@@ -176,7 +180,7 @@ export const en = {
     privacyBody:
       'Photos and videos are processed locally on your iPhone and are not sent to Kleen. No account is required. Decisions, limits, and preferences are stored locally.',
     privacyFuture:
-      'Real purchases and ads are not active yet. This policy will be updated before those integrations are enabled.',
+      'Subscriptions use the App Store through RevenueCat. Rewarded ads may still be in test mode until the native ads SDK ships.',
     privacyClose: 'Got it',
     privacyCloseA11y: 'Close privacy policy',
   },
@@ -184,18 +188,24 @@ export const en = {
     title: 'Kleen Premium',
     close: 'Close Premium',
     body:
-      'The final offer will be validated during beta. This preview lets you test the flow without a real charge or subscription.',
+      'Unlimited reviews with no ads. Choose monthly, yearly, or lifetime in the store offer.',
     unlimited: 'Unlimited daily reviews',
     noAds: 'No ad interruptions',
     purchase: 'Continue with Premium',
-    purchaseTest: 'Test Premium purchase',
+    purchaseTest: 'Test Premium (Expo Go)',
     restore: 'Restore purchase',
     testNote:
-      'Test mode: no charge. The price will come from the App Store once purchases are enabled.',
+      'Expo Go cannot present the native RevenueCat paywall. Use local test unlock with no charge, or a development build for the real offer.',
     priceNote:
       'Price, billing period, and renewal terms will be shown by the App Store offer.',
-    purchaseUnavailable: 'Purchases are not available yet. You were not charged.',
-    restoreUnavailable: 'Restore will be available once purchases are enabled.',
+    purchaseUnavailable:
+      'Could not open the Premium offer right now. Please try again shortly.',
+    purchaseFailed:
+      'Purchase failed. Check your connection and try again.',
+    restoreUnavailable:
+      'Could not restore right now. Please try again shortly.',
+    restoreFailed:
+      'Could not restore purchases. Check your connection and try again.',
     active: 'Premium activated.',
     restored: 'Purchase restored. Premium is active.',
     noActive: 'No active subscription was found.',

@@ -22,7 +22,7 @@
       "package": "com.g4brieloliveira.kleen",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#5142C7"
+        "backgroundColor": "#9088F0"
       },
       "permissions": [
         "READ_MEDIA_IMAGES",
@@ -55,7 +55,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#0D0D12"
+          "backgroundColor": "#9088F0"
         }
       ],
       "expo-localization"

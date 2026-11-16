@@ -8,6 +8,7 @@ export const ptBR = {
     remaining_one: '{{count}} restante',
     remaining_other: '{{count}} restantes',
     cancel: 'Cancelar',
+    close: 'Fechar',
     retry: 'Tentar novamente',
   },
   albums: {
@@ -61,6 +62,8 @@ export const ptBR = {
     reviewA11y: 'Revisar este álbum em cartões',
     emptyTitle: 'Este álbum está vazio',
     emptyBody: 'As mídias que você revisar aparecerão aqui.',
+    openPreviewA11y: 'Abrir mídia em tela cheia',
+    previewCounter: '{{current}} de {{total}}',
   },
   swipe: {
     title: 'Revisar',
@@ -148,6 +151,7 @@ export const ptBR = {
     remainingToday: '{{count}} restantes hoje',
     hypothesis:
       '{{limit}} revisões grátis por dia. Cada anúncio libera mais {{bonus}}.',
+    upgrade: 'Assinar Premium',
     restore: 'Restaurar compras',
     checking: 'Verificando…',
     manage: 'Gerenciar assinatura',
@@ -177,7 +181,7 @@ export const ptBR = {
     privacyBody:
       'Fotos e vídeos são processados localmente no iPhone e não são enviados ao Kleen. O app não exige cadastro. Decisões, limite e preferências ficam no armazenamento local.',
     privacyFuture:
-      'Compras e anúncios reais ainda não estão ativos. A política será atualizada antes dessas integrações.',
+      'Assinaturas usam a App Store via RevenueCat. Anúncios recompensados ainda podem estar em modo de teste até o SDK nativo.',
     privacyClose: 'Entendi',
     privacyCloseA11y: 'Fechar política de privacidade',
   },
@@ -185,20 +189,24 @@ export const ptBR = {
     title: 'Kleen Premium',
     close: 'Fechar Premium',
     body:
-      'A oferta final será validada no beta. Esta prévia permite testar o fluxo sem cobrança ou assinatura real.',
+      'Revisões ilimitadas e sem anúncios. Escolha mensal, anual ou vitalício na oferta da loja.',
     unlimited: 'Revisões sem limite diário',
     noAds: 'Sem interrupções por anúncios',
     purchase: 'Continuar com Premium',
-    purchaseTest: 'Testar compra Premium',
+    purchaseTest: 'Testar Premium (Expo Go)',
     restore: 'Restaurar compra',
     testNote:
-      'Modo de teste: sem cobrança. O preço virá da App Store quando as compras forem ativadas.',
+      'No Expo Go o paywall nativo da RevenueCat não abre. Use o teste local sem cobrança, ou um development build para a oferta real.',
     priceNote:
       'Preço, período e renovação serão exibidos pela oferta da App Store.',
     purchaseUnavailable:
-      'A compra ainda não está disponível. Nenhuma cobrança foi feita.',
+      'Não foi possível abrir a oferta Premium agora. Tente de novo em instantes.',
+    purchaseFailed:
+      'A compra falhou. Verifique a conexão e tente novamente.',
     restoreUnavailable:
-      'A restauração estará disponível quando as compras forem ativadas.',
+      'Não foi possível restaurar agora. Tente novamente em instantes.',
+    restoreFailed:
+      'Falha ao restaurar compras. Verifique a conexão e tente de novo.',
     active: 'Premium ativado.',
     restored: 'Compra restaurada. Premium ativo.',
     noActive: 'Nenhuma assinatura ativa foi encontrada.',
