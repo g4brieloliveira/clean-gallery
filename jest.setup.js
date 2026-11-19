@@ -25,6 +25,28 @@ jest.mock('react-native-purchases', () => {
   };
 });
 
+jest.mock('react-native-google-mobile-ads', () => {
+  const TestIds = { REWARDED: 'test-rewarded' };
+  const AdEventType = { CLOSED: 'closed', ERROR: 'error', PAID: 'paid' };
+  const RewardedAdEventType = { LOADED: 'loaded', EARNED_REWARD: 'earned' };
+  return {
+    __esModule: true,
+    default: () => ({
+      initialize: jest.fn(async () => undefined),
+    }),
+    TestIds,
+    AdEventType,
+    RewardedAdEventType,
+    RewardedAd: {
+      createForAdRequest: jest.fn(() => ({
+        addAdEventListener: jest.fn(() => jest.fn()),
+        load: jest.fn(),
+        show: jest.fn(async () => undefined),
+      })),
+    },
+  };
+});
+
 jest.mock('react-native-purchases-ui', () => {
   const PAYWALL_RESULT = {
     NOT_PRESENTED: 'NOT_PRESENTED',

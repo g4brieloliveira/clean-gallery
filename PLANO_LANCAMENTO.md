@@ -241,7 +241,7 @@ Esta fase começa somente após o **GO** do beta técnico.
 ### P1
 
 - [x] Implementar limite gratuito simples e compreensível, definindo fuso, virada do dia, reinstalação e funcionamento offline.
-- [ ] Oferecer **Assistir anúncio** para desbloquear +25 revisões após o limite gratuito, sem teto diário e coexistindo com Pro — CG-111. Política, adapter fake e UX prontos; SDK nativo pendente.
+- [x] Oferecer **Assistir anúncio** para desbloquear +25 revisões após o limite gratuito, sem teto diário e coexistindo com Pro — CG-111. AdMob nativo + TestIds no TestFlight; unidades reais via EAS env.
 - [ ] Selecionar um único recurso Pro validado pelo beta, como filtro por capturas ou vídeos grandes.
 - [ ] Testar ofertas e preços em vez de assumir os valores iniciais.
 

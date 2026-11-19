@@ -1,4 +1,7 @@
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import { AdMobRewardedAdProvider } from './admobRewarded';
 import { isRevenueCatNativeUiAvailable } from './environment';
 import type { PremiumStatus } from './policy';
 import {
@@ -23,6 +26,8 @@ export type PremiumPurchaseResult =
   | 'cancelled'
   | 'unavailable'
   | 'failed'
+  /** Offerings/products misconfigured in ASC/RevenueCat (Error 23). */
+  | 'configuration'
   /** Native paywall cannot run (Expo Go) — UI should show in-app fallback. */
   | 'fallback';
 
@@ -73,9 +78,7 @@ export async function requestRewardedReviewBonus(
   return { adResult, granted: grantBonus() };
 }
 
-/**
- * Pre-Apple ads adapter. Replace after a native ads SDK is available.
- */
+/** Expo Go / web fallback — never credits a real ad network. */
 class FakeRewardedAdProvider implements RewardedAdProvider {
   readonly mode = 'fake' as const;
 
@@ -83,6 +86,31 @@ class FakeRewardedAdProvider implements RewardedAdProvider {
     await new Promise<void>((resolve) => setTimeout(resolve, 650));
     return 'completed';
   }
+}
+
+function isAdMobNativeAvailable(): boolean {
+  if (Platform.OS === 'web') return false;
+  // Expo Go has no AdMob native binary; development/TestFlight builds do.
+  return Constants.appOwnership !== 'expo';
+}
+
+function isConfigurationError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: string | number }).code;
+  const message = String((error as { message?: string }).message ?? '');
+  return (
+    code === 23 ||
+    code === '23' ||
+    code === 'CONFIGURATION_ERROR' ||
+    /configuration|offerings? empty|none of the products/i.test(message)
+  );
+}
+
+function createRewardedAdProvider(): RewardedAdProvider {
+  if (isAdMobNativeAvailable()) {
+    return new AdMobRewardedAdProvider();
+  }
+  return new FakeRewardedAdProvider();
 }
 
 /**
@@ -115,11 +143,14 @@ class RevenueCatPremiumProvider implements PremiumProvider {
       if (reason === 'preview_api') {
         return 'fallback';
       }
+      if (reason === 'offerings_empty') {
+        return 'configuration';
+      }
       if (status === 'active' || paywallGrantedAccess(result)) {
         return 'active';
       }
       if (result === PAYWALL_RESULT.ERROR) {
-        return 'failed';
+        return 'configuration';
       }
       if (
         paywallWasCancelled(result) ||
@@ -131,7 +162,7 @@ class RevenueCatPremiumProvider implements PremiumProvider {
       return 'failed';
     } catch (error) {
       console.warn('[premiumProvider] purchase/paywall failed', error);
-      return 'failed';
+      return isConfigurationError(error) ? 'configuration' : 'failed';
     }
   }
 
@@ -167,5 +198,6 @@ class RevenueCatPremiumProvider implements PremiumProvider {
   }
 }
 
-export const rewardedAdProvider: RewardedAdProvider = new FakeRewardedAdProvider();
+export const rewardedAdProvider: RewardedAdProvider =
+  createRewardedAdProvider();
 export const premiumProvider: PremiumProvider = new RevenueCatPremiumProvider();

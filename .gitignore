@@ -44,3 +44,8 @@ coverage/
 # generated native folders
 /ios
 /android
+
+# Internal install artifacts (never publish)
+**/expo-dev-qr.png
+assets/brand/expo-dev-qr.png
+*.ipa

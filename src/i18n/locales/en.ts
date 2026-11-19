@@ -180,7 +180,7 @@ export const en = {
     privacyBody:
       'Photos and videos are processed locally on your iPhone and are not sent to Kleen. No account is required. Decisions, limits, and preferences are stored locally.',
     privacyFuture:
-      'Subscriptions use the App Store through RevenueCat. Rewarded ads may still be in test mode until the native ads SDK ships.',
+      'Subscriptions use the App Store through RevenueCat. Rewarded ads use Google AdMob (test units on TestFlight until production IDs are configured).',
     privacyClose: 'Got it',
     privacyCloseA11y: 'Close privacy policy',
   },
@@ -202,6 +202,8 @@ export const en = {
       'Could not open the Premium offer right now. Please try again shortly.',
     purchaseFailed:
       'Purchase failed. Check your connection and try again.',
+    purchaseConfiguration:
+      'Premium products are not ready in App Store Connect yet. Use kleen_lifetime (non-consumable) plus kleen_yearly / kleen_monthly as auto-renewable subscriptions, complete their metadata, link them to the current RevenueCat Offering, then try again.',
     restoreUnavailable:
       'Could not restore right now. Please try again shortly.',
     restoreFailed:

@@ -1,8 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from 'styled-components/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BrandSplash } from './src/components/BrandSplash';
+import { warmUpAdMob } from './src/monetization/admobRewarded';
 import { premiumProvider } from './src/monetization/providers';
 import { addPremiumStatusListener } from './src/monetization/revenueCat';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -46,7 +48,7 @@ function HydrationGate({ children }: { readonly children: React.ReactNode }): Re
 
     void (async () => {
       try {
-        await premiumProvider.configure();
+        await Promise.all([premiumProvider.configure(), warmUpAdMob()]);
         if (cancelled) return;
         removeListener = addPremiumStatusListener((status) => {
           useMonetizationStore.getState().setPremiumStatus(status);
@@ -78,13 +80,15 @@ function HydrationGate({ children }: { readonly children: React.ReactNode }): Re
 
 export default function App(): React.JSX.Element {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider theme={appTheme}>
-        <HydrationGate>
-          <AppNavigator />
-        </HydrationGate>
-        <StatusBar style="light" />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider theme={appTheme}>
+          <HydrationGate>
+            <AppNavigator />
+          </HydrationGate>
+          <StatusBar style="light" />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

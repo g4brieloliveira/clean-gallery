@@ -273,6 +273,10 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         return;
       }
       if (result === 'cancelled') return;
+      if (result === 'configuration') {
+        setLimitMessage(t('premium.purchaseConfiguration'));
+        return;
+      }
       if (result === 'failed') {
         setLimitMessage(t('premium.purchaseFailed'));
         return;
@@ -302,6 +306,10 @@ export function SwipeScreen({ navigation, route }: SwipeScreenProps): React.JSX.
         return;
       }
       if (result === 'cancelled') return;
+      if (result === 'configuration') {
+        setPremiumMessage(t('premium.purchaseConfiguration'));
+        return;
+      }
       setPremiumMessage(
         result === 'failed'
           ? t('premium.purchaseFailed')

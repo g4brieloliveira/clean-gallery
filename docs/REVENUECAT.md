@@ -1,5 +1,7 @@
 # RevenueCat — Kleen Pro
 
+> Doc de processo do case study público. A chave `appl_…` de produção vive só no EAS; no código há apenas a chave pública **Test Store** (`test_…`) para desenvolvimento.
+
 ## O que já está no app
 
 - SDK: `react-native-purchases` + `react-native-purchases-ui`
@@ -12,11 +14,11 @@
 
 ## Produtos esperados no Offering atual
 
-| Package id | Tipo ASC |
-|---|---|
-| `lifetime` | Non-Consumable |
-| `yearly` | Auto-Renewable |
-| `monthly` | Auto-Renewable |
+| Store product ID (ASC) | Tipo ASC | Package sugerido no Offering |
+|---|---|---|
+| `kleen_lifetime` | Não consumível | `lifetime` |
+| `kleen_yearly` | Assinatura auto-renovável | `yearly` |
+| `kleen_monthly` | Assinatura auto-renovável | `monthly` |
 
 Todos devem desbloquear o entitlement Pro acima. Crie um Paywall + Customer Center no Offering **current**.
 
@@ -25,8 +27,8 @@ Todos devem desbloquear o entitlement Pro acima. Crie um Paywall + Customer Cent
 1. No RevenueCat: Project → Apps → iOS app com bundle `com.g4brieloliveira.kleen`
 2. Cole a **In-App Purchase Key** (`.p8`) do App Store Connect → Users and Access → Integrations → In-App Purchase
 3. Ou Shared Secret legado, se ainda usar
-4. Importe / mapeie `lifetime`, `yearly`, `monthly` ao entitlement Pro
-5. Offering current com packages ids exatamente: `lifetime`, `yearly`, `monthly`
+4. Importe / mapeie `kleen_lifetime`, `kleen_yearly`, `kleen_monthly` ao entitlement Pro
+5. Offering current com packages apontando a esses store products
 6. Copie a API key pública **Apple** (`appl_…`)
 
 ### EAS Secret

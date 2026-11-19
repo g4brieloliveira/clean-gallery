@@ -1,5 +1,7 @@
 # TestFlight / EAS — Kleen iOS
 
+> Doc de processo do case study público. **Não** cole chaves reais (`appl_…`, `.p8`) neste repositório — use EAS Secrets / Environment Variables.
+
 Bundle ID: `com.g4brieloliveira.kleen`  
 SKU ASC: `kleen-ios`  
 Nome ASC: **Kleen: Swipe Photo Cleaner**

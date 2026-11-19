@@ -1,5 +1,7 @@
 # Instalar o development build no iPhone
 
+> Doc de processo do case study público. QR codes e IPA de install interno **não** são versionados.
+
 O erro **“integridade não pôde ser verificada”** em builds `internal` / ad hoc quase sempre significa: **o UDID do iPhone não estava no perfil de provisioning** quando o IPA foi gerado.
 
 ## O que já temos
@@ -82,7 +84,7 @@ cd ~/www/clean-gallery
 
 ### 4) Produtos na App Store Connect (se ainda não criou)
 
-Siga [`APP_STORE_CONNECT.md`](APP_STORE_CONNECT.md): app `com.g4brieloliveira.kleen` + IAP `lifetime` / `yearly` / `monthly`.
+Siga [`APP_STORE_CONNECT.md`](APP_STORE_CONNECT.md): app `com.g4brieloliveira.kleen` + IAP `kleen_lifetime` / `kleen_yearly` / `kleen_monthly`.
 
 ### 5) Testar compras no development build
 

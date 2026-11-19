@@ -1,4 +1,5 @@
 {
+  "CFBundleDisplayName": "Kleen",
   "NSPhotoLibraryUsageDescription": "Kleen needs access to your photos and videos so you can review and organize your library.",
   "NSPhotoLibraryAddUsageDescription": "Kleen can save changes you authorize in your photo library."
 }

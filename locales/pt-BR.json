@@ -1,4 +1,5 @@
 {
+  "CFBundleDisplayName": "Kleen",
   "NSPhotoLibraryUsageDescription": "O Kleen precisa acessar suas fotos e vídeos para você revisar e organizar sua biblioteca.",
   "NSPhotoLibraryAddUsageDescription": "O Kleen pode salvar as alterações que você autorizar na sua fototeca."
 }

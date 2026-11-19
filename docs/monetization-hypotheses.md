@@ -4,9 +4,10 @@ Status: **hipóteses para teste**, não preços ou limites finais.
 
 ## Decisão de implementação
 
-Premium já usa RevenueCat (`react-native-purchases` + Paywalls UI) com a chave
-de Test Store. Compras reais exigem development build + App Store Connect /
-Sandbox. Rewarded ads continuam no adapter `fake` até o SDK nativo.
+Premium usa RevenueCat (`react-native-purchases` + Paywalls UI) com chave
+`appl_` em builds de loja. Produtos ASC (`kleen_lifetime` /
+`kleen_yearly` / `kleen_monthly`) precisam estar Ready to Submit — yearly/monthly
+como assinatura auto-renovável, não consumível. Rewarded ads: `docs/ADS.md`.
 
 Checklist RevenueCat: ver `docs/REVENUECAT.md`.
 

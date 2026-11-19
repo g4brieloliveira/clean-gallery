@@ -12,7 +12,9 @@ import {
   PRO_ENTITLEMENT_ID,
   REVENUECAT_API_KEY_ANDROID,
   REVENUECAT_API_KEY_IOS,
+  STORE_PRODUCT_IDS,
   type OfferingPackageId,
+  type StoreProductId,
 } from './config';
 import { isRevenueCatNativeUiAvailable } from './environment';
 import type { PremiumStatus } from './policy';
@@ -38,6 +40,11 @@ export async function configureRevenueCat(): Promise<void> {
 
   const apiKey =
     Platform.OS === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
+
+  if (!apiKey || apiKey.trim().length === 0) {
+    console.warn('[revenueCat] missing API key — skipping configure');
+    return;
+  }
 
   await Purchases.configure({ apiKey });
   configured = true;
@@ -86,7 +93,7 @@ export async function restorePremiumPurchases(): Promise<{
 export async function presentKleenPaywall(): Promise<{
   readonly result: PAYWALL_RESULT;
   readonly status: PremiumStatus;
-  readonly reason?: 'preview_api';
+  readonly reason?: 'preview_api' | 'offerings_empty';
 }> {
   // Expo Go Preview API routes paywalls through a browser SDK and throws
   // "document is not available". Skip and let the app show an in-app fallback.
@@ -95,6 +102,28 @@ export async function presentKleenPaywall(): Promise<{
       result: PAYWALL_RESULT.NOT_PRESENTED,
       status: await fetchPremiumStatus(),
       reason: 'preview_api',
+    };
+  }
+
+  // Preflight StoreKit products so we show a clear in-app message instead of
+  // RevenueCat's native "Error 23" alert when ASC products are missing.
+  const offerings = await getCurrentOfferingPackages();
+  const missingStoreProducts =
+    offerings.missingStoreProducts.length ===
+    Object.values(STORE_PRODUCT_IDS).length;
+  if (
+    !offerings.offeringId ||
+    offerings.packages.length === 0 ||
+    missingStoreProducts
+  ) {
+    console.warn(
+      '[revenueCat] offerings empty or products missing from store',
+      offerings,
+    );
+    return {
+      result: PAYWALL_RESULT.ERROR,
+      status: await fetchPremiumStatus(),
+      reason: 'offerings_empty',
     };
   }
 
@@ -109,6 +138,7 @@ export async function presentKleenPaywall(): Promise<{
     return {
       result: PAYWALL_RESULT.ERROR,
       status: await fetchPremiumStatus(),
+      reason: 'offerings_empty',
     };
   }
 }
@@ -146,6 +176,7 @@ export async function getCurrentOfferingPackages(): Promise<{
     readonly packageType: string;
   }[];
   readonly missingExpected: readonly OfferingPackageId[];
+  readonly missingStoreProducts: readonly StoreProductId[];
 }> {
   try {
     const offerings = await Purchases.getOfferings();
@@ -155,6 +186,7 @@ export async function getCurrentOfferingPackages(): Promise<{
         offeringId: null,
         packages: [],
         missingExpected: Object.values(OFFERING_PACKAGE_IDS),
+        missingStoreProducts: Object.values(STORE_PRODUCT_IDS),
       };
     }
 
@@ -164,15 +196,20 @@ export async function getCurrentOfferingPackages(): Promise<{
       packageType: String(pkg.packageType),
     }));
 
-    const present = new Set(packages.map((pkg) => pkg.identifier));
+    const presentPackages = new Set(packages.map((pkg) => pkg.identifier));
+    const presentProducts = new Set(packages.map((pkg) => pkg.productId));
     const missingExpected = (
       Object.values(OFFERING_PACKAGE_IDS) as OfferingPackageId[]
-    ).filter((id) => !present.has(id));
+    ).filter((id) => !presentPackages.has(id));
+    const missingStoreProducts = (
+      Object.values(STORE_PRODUCT_IDS) as StoreProductId[]
+    ).filter((id) => !presentProducts.has(id));
 
     return {
       offeringId: current.identifier,
       packages,
       missingExpected,
+      missingStoreProducts,
     };
   } catch (error) {
     console.warn('[revenueCat] getOfferings failed', describeError(error));
@@ -180,6 +217,7 @@ export async function getCurrentOfferingPackages(): Promise<{
       offeringId: null,
       packages: [],
       missingExpected: Object.values(OFFERING_PACKAGE_IDS),
+      missingStoreProducts: Object.values(STORE_PRODUCT_IDS),
     };
   }
 }

@@ -181,7 +181,7 @@ export const ptBR = {
     privacyBody:
       'Fotos e vídeos são processados localmente no iPhone e não são enviados ao Kleen. O app não exige cadastro. Decisões, limite e preferências ficam no armazenamento local.',
     privacyFuture:
-      'Assinaturas usam a App Store via RevenueCat. Anúncios recompensados ainda podem estar em modo de teste até o SDK nativo.',
+      'Assinaturas usam a App Store via RevenueCat. Anúncios recompensados usam o Google AdMob (unidades de teste no TestFlight até a conta de produção).',
     privacyClose: 'Entendi',
     privacyCloseA11y: 'Fechar política de privacidade',
   },
@@ -203,6 +203,8 @@ export const ptBR = {
       'Não foi possível abrir a oferta Premium agora. Tente de novo em instantes.',
     purchaseFailed:
       'A compra falhou. Verifique a conexão e tente novamente.',
+    purchaseConfiguration:
+      'A oferta Premium ainda não está pronta na App Store. Confira se kleen_lifetime (não consumível) e kleen_yearly / kleen_monthly (assinaturas auto-renováveis) existem com metadados completos e estão no Offering atual do RevenueCat.',
     restoreUnavailable:
       'Não foi possível restaurar agora. Tente novamente em instantes.',
     restoreFailed:

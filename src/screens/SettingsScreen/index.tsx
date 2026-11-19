@@ -125,6 +125,8 @@ export function SettingsScreen({
         setMessage(t('premium.active'));
       } else if (result === 'fallback') {
         setPremiumOpen(true);
+      } else if (result === 'configuration') {
+        setMessage(t('premium.purchaseConfiguration'));
       } else if (result === 'failed') {
         setMessage(t('premium.purchaseFailed'));
       } else if (result !== 'cancelled') {
@@ -154,6 +156,10 @@ export function SettingsScreen({
         return;
       }
       if (result === 'cancelled') return;
+      if (result === 'configuration') {
+        setPremiumMessage(t('premium.purchaseConfiguration'));
+        return;
+      }
       setPremiumMessage(
         result === 'failed'
           ? t('premium.purchaseFailed')

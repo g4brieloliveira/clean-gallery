@@ -9,12 +9,12 @@ if [[ -z "$KEY" || "$KEY" != appl_* ]]; then
   exit 1
 fi
 
-for ENV in development preview production; do
-  echo "Setting EXPO_PUBLIC_REVENUECAT_IOS_API_KEY for $ENV…"
+for env_name in development preview production; do
+  echo "Setting EXPO_PUBLIC_REVENUECAT_IOS_API_KEY for ${env_name}..."
   eas env:create \
     --name EXPO_PUBLIC_REVENUECAT_IOS_API_KEY \
     --value "$KEY" \
-    --environment "$ENV" \
+    --environment "$env_name" \
     --visibility plaintext \
     --force \
     --non-interactive
